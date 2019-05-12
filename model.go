@@ -95,8 +95,7 @@ func Return403Json(c *gin.Context, msg string) {
 }
 
 type ApiContext struct {
-	*gin.Context
 	R *redis.Client
-	Conf *Config
+	User IUserConf
 }
 

@@ -9,6 +9,6 @@ type IMongoDbConf interface {
 	DbName() string
 }
 
-type IRedisConf interface {
-
+type IUserConf interface {
+	UserId() string
 }
