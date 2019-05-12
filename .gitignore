@@ -1,0 +1,11 @@
+.idea/
+*.swp
+*.pyc
+__pycache__/
+logs/
+test/test
+cmd/v2doc/v2doc
+cmd/v2doc/doc.html
+cmd/apiserver/apiserver
+cmd/casserver/casserver
+cmd/queuesender/queuesender
