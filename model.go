@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"time"
 )
 
@@ -93,5 +94,9 @@ func Return403Json(c *gin.Context, msg string) {
 	c.AbortWithStatusJSON(403, info)
 }
 
-
+type ApiContext struct {
+	*gin.Context
+	R *redis.Client
+	Conf *Config
+}
 
