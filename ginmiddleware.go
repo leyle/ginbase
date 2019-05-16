@@ -2,15 +2,27 @@ package ginbase
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
-	"os"
 	"strings"
+	. "github.com/leyle/gsimplelog"
 )
 
-func DumpHandler(c *gin.Context) {
+const REQUEST_ID = "REQUESTID"
 
+var Debug = false
+
+func DummyHandler(c *gin.Context) {
+	ReturnJson(c, 501, 501, "暂未实现", "")
+}
+
+// 给每一个 request 设置一个 request id
+func SetRequestIdMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		reqId := GenerateDataId()
+		c.Set(REQUEST_ID, reqId)
+		c.Next()
+	}
 }
 
 func CORSMiddleware() gin.HandlerFunc {
@@ -29,30 +41,40 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func LogMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		uri := c.Request.RequestURI
-		method := strings.ToUpper(c.Request.Method)
-		ctype := strings.ToLower(c.Request.Header.Get("Content-Type"))
-		if strings.Contains(ctype, "application/json") {
-			var err error
-			var body []byte
-			var bodyStr string
-			if c.Request.Body != nil {
-				body, err = ioutil.ReadAll(c.Request.Body)
-				if err != nil {
-					fmt.Println("读取消息body 失败 ", err.Error())
-				}
-				bodyStr = string(body)
-				c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-			}
-			if strings.Contains(uri, "msg/recv") {
-				_, _ = fmt.Fprintf(os.Stdout, "REQUEST: [%s][%s]\n", method, uri)
-			} else {
-				_, _ = fmt.Fprintf(os.Stdout, "REQUEST: [%s][%s]Body:\n%s\n", method, uri, bodyStr)
-			}
+	if !Debug {
+		return func(c *gin.Context) {
+			c.Next()
 		}
-
-		c.Next()
+	} else {
+		return func(c *gin.Context) {
+			logFunc(c)
+		}
 	}
 }
+
+func logFunc(c *gin.Context) {
+	reqId := c.GetString(REQUEST_ID)
+
+	uri := c.Request.RequestURI
+	method := strings.ToUpper(c.Request.Method)
+	ctype := strings.ToLower(c.Request.Header.Get("Content-Type"))
+	if strings.Contains(ctype, "application/json") {
+		var err error
+		var body []byte
+		var bodyStr string
+		if c.Request.Body != nil {
+			body, err = ioutil.ReadAll(c.Request.Body)
+			if err != nil {
+				Logger.Errorf("读取 requestbody 失败,%s", err.Error())
+			}
+			bodyStr = string(body)
+			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		}
+
+		Logger.Debugf("REQUEST[%s]:[%s][%s]\n%s", reqId, method, uri, bodyStr)
+	}
+
+	c.Next()
+}
+
 

@@ -15,6 +15,36 @@ import (
 	. "github.com/leyle/gsimplelog"
 )
 
+
+type CurTime struct {
+	Seconds int64 `json:"seconds" bson:"seconds"` // 精确到秒的时间戳
+	HumanTime string `json:"humanTime" bson:"humanTime"` // 给人看的时间 2019-03-04 10:31:22
+}
+
+func GetCurTime() *CurTime {
+	curT := time.Now()
+
+	t := &CurTime{
+		Seconds: curT.Unix(),
+		HumanTime: curT.Format("2006-01-02 15:04:05"),
+	}
+
+	return t
+}
+
+
+func CurUnixTime() int64 {
+	return time.Now().Unix()
+}
+
+func CurHumanTime() string {
+	return time.Now().Format("2006-01-02 15:04:05")
+}
+
+func GetCurNoSpaceTime() string {
+	return time.Now().Format("20060102150405")
+}
+
 func Sha256(data string) string {
 	h := sha256.New()
 	h.Write([]byte(data))
