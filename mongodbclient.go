@@ -1,8 +1,8 @@
 package ginbase
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
 	. "github.com/leyle/gsimplelog"
 )

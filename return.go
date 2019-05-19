@@ -2,9 +2,9 @@ package ginbase
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	. "github.com/leyle/gsimplelog"
-	"github.com/pkg/errors"
 	"net/http"
 )
 
