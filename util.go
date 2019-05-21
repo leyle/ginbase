@@ -9,12 +9,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 	. "github.com/leyle/gsimplelog"
 )
 
+const (
+	HTTP_GET_TIMEOUT = 10 // 10 seconds
+	HTTP_POST_TIMEOUT = 10 // 10 seconds
+)
 
 type CurTime struct {
 	Seconds int64 `json:"seconds" bson:"seconds"` // 精确到秒的时间戳
@@ -77,20 +82,54 @@ func GenerateToken(userId string) string {
 	return h
 }
 
-func HttpPost(url string, data []byte) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
+func HttpPost(reqUrl string, data []byte) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodPost, reqUrl, bytes.NewBuffer(data))
 	if err != nil {
-		Logger.Errorf("对 [%s] 创建 request 失败, %s", url, err.Error())
+		Logger.Errorf("对 [%s] 创建 request 失败, %s", reqUrl, err.Error())
 		return nil, err
 	}
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: HTTP_POST_TIMEOUT * time.Second,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
-		Logger.Errorf("对 [%s] 发起 client.Do() 操作失败, %s", err.Error())
+		Logger.Errorf("对 [%s] 发起 client.Do() 操作失败, %s", reqUrl, err.Error())
 		return nil, err
 	}
 
+	return resp, nil
+}
+
+func HttpGet(reqUrl string, values map[string][]string) (*http.Response, error) {
+	// https://golang.org/pkg/net/url/#Values
+	urlV := url.Values{}
+	for k, vs := range values {
+		if len(vs) == 1 {
+			urlV.Set(k, vs[0])
+		} else if len(vs) > 1 {
+			for _, v := range vs {
+				urlV.Add(k, v)
+			}
+		}
+	}
+
+	req, err := http.NewRequest(http.MethodGet, reqUrl, nil)
+	if err != nil {
+		Logger.Errorf("生成 http get newrequest 失败, %s", err.Error())
+		return nil, err
+	}
+	req.URL.RawQuery = urlV.Encode()
+
+	client := &http.Client{
+		Timeout: HTTP_GET_TIMEOUT * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		Logger.Errorf("发起get请求do[%s]失败, %s", reqUrl, err.Error())
+		return nil, err
+	}
 	return resp, nil
 }
 
