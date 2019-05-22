@@ -8,7 +8,7 @@ import (
 	. "github.com/leyle/gsimplelog"
 )
 
-const REQUEST_ID = "REQUESTID"
+const REQUEST_ID_HEADER_KEY = "X-Request-Id"
 
 var Debug = false
 
@@ -20,7 +20,15 @@ func DummyHandler(c *gin.Context) {
 func SetRequestIdMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		reqId := GenerateDataId()
-		c.Set(REQUEST_ID, reqId)
+		c.Request.Header.Set(REQUEST_ID_HEADER_KEY, reqId)
+		c.Next()
+	}
+}
+
+func SetResponseIdMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		reqId := c.Request.Header.Get(REQUEST_ID_HEADER_KEY)
+		c.Writer.Header().Set(REQUEST_ID_HEADER_KEY, reqId)
 		c.Next()
 	}
 }
@@ -53,7 +61,7 @@ func LogMiddleware() gin.HandlerFunc {
 }
 
 func logFunc(c *gin.Context) {
-	reqId := c.GetString(REQUEST_ID)
+	reqId := c.Request.Header.Get(REQUEST_ID_HEADER_KEY)
 
 	uri := c.Request.RequestURI
 	method := strings.ToUpper(c.Request.Method)
