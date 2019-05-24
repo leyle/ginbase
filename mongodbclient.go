@@ -74,4 +74,30 @@ func (d *Ds) C(collection string) *mgo.Collection {
 	return d.Se.DB(d.Opt.Database).C(collection)
 }
 
+// 创建单键索引
+// 传入的列表中的每一个字段创建一个索引
+func (d *Ds)InsureSingleIndex(collection string, keys []string) error {
+	Logger.Debugf("Insure mongodb [%s] index, %s, starting...", collection, keys)
+	var err error
+	for _, key := range keys {
+		err = d.C(collection).EnsureIndexKey(key)
+		if err != nil {
+			Logger.Errorf("create [%s] index [%s] failed, %s", collection, key, err.Error())
+			return err
+		}
+	}
+	Logger.Debugf("Insure mongodb [%s] index, %s, done", collection, keys)
+	return nil
+}
 
+// 创建复合索引
+func (d *Ds)InsureCompositeIndex(collection string, keys []string) error {
+	Logger.Debugf("Insure mongodb [%s] index, %s, starting...", collection, keys)
+	err := d.C(collection).EnsureIndexKey(keys...)
+	if err != nil {
+		Logger.Errorf("create [%s] index [%s] failed, %s", collection, keys, err.Error())
+		return err
+	}
+	Logger.Debugf("Insure mongodb [%s] index, %s, done", collection, keys)
+	return nil
+}
