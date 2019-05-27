@@ -3,7 +3,7 @@ package infiniteclass
 import "github.com/gin-gonic/gin"
 
 func CategoryRouter(g *gin.RouterGroup) {
-	catR := g.Group("/cat")
+	catR := g.Group("/cat/:domain")
 	{
 		// 新建分类
 		catR.POST("", NewInfiniteClassHandler)
@@ -17,8 +17,8 @@ func CategoryRouter(g *gin.RouterGroup) {
 		// 启用分类
 		catR.POST("/info/:id/enable", EnableInfiniteClassHandler)
 
-		// 读取指定id的分类，可选参数 child=Y，读取所有下级
-		catR.GET("/info/:id", GetInfiniteClassInfoHandler)
+		// ?id=xxx   || ?name=xxx&level=1
+		catR.GET("/info", GetInfiniteClassInfoHandler)
 
 		// 读取指定 level 的分类列表
 		catR.GET("/level/:level", QueryLevelInfiniteClassHandler)

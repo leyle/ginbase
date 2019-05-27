@@ -11,7 +11,7 @@ import (
 // 增删查改
 // 新建分类
 type NewInfiniteClassForm struct {
-	ParentId string `json:"parentId" binding:"required"`
+	ParentId string `json:"pid" binding:"required"`
 	Name string `json:"name" binding:"required"`
 	Icon string `json:"icon"`
 	Info string `json:"info"`
@@ -23,10 +23,12 @@ func NewInfiniteClassHandler(c *gin.Context) {
 		return
 	}
 
+	domain := c.Param("domain")
+
 	db := ginbase.NewDs(Opt.MgoOption)
 	defer db.Close()
 
-	ic, err := NewInfiniteClass(db, form.ParentId, form.Name, form.Icon, form.Info)
+	ic, err := NewInfiniteClass(db, form.ParentId, form.Name, form.Icon, form.Info, domain)
 	if err != nil {
 		ginbase.ReturnErrJson(c, err.Error())
 		return
@@ -146,10 +148,27 @@ func EnableInfiniteClassHandler(c *gin.Context) {
 
 // 读取指定id的分类明细
 // 包含了它所有的下一级分类
+// 可选参数是是否筛选状态
 func GetInfiniteClassInfoHandler(c *gin.Context) {
-	id := c.Param("id")
-	// 如果 child == Y，就需要读取其所有下级分类，如果不是，只读取自己的信息
+	id := c.Query("id")
+	if id != "" {
+		getInfiniteClassById(c, id)
+		return
+	}
 
+	name := c.Query("name")
+	if name != "" {
+		getInfiniteClassByName(c, name)
+		return
+	}
+
+	if id == "" && name == "" {
+		ginbase.ReturnErrJson(c, "缺少id或name")
+		return
+	}
+}
+
+func getInfiniteClassById(c *gin.Context, id string) {
 	db := ginbase.NewDs(Opt.MgoOption)
 	defer db.Close()
 
@@ -164,11 +183,24 @@ func GetInfiniteClassInfoHandler(c *gin.Context) {
 		return
 	}
 
+	// disable 参数，如果不传，就是选择所有，如果传了，就是指定状态的
+	// Y-禁用的 N-非禁用，空，不筛选
+	disable := c.Query("disable")
+	disable = strings.ToUpper(disable)
+
+	if disable != "" {
+		if disable != "Y" && disable != "N" {
+			ginbase.ReturnErrJson(c, "错误的 disable 参数值")
+			return
+		}
+	}
+
+	// 如果 child == Y，就需要读取其所有下级分类，如果不是，只读取自己的信息
 	child := c.Query("children")
 	child = strings.ToUpper(child)
 	if child == "Y" {
 		// 读取其下级
-		err = QueryAllChildrenByParentClass(db, ic)
+		err = QueryAllChildrenByParentClass(db, ic, disable)
 		if err != nil {
 			ginbase.ReturnErrJson(c, err.Error())
 			return
@@ -176,6 +208,76 @@ func GetInfiniteClassInfoHandler(c *gin.Context) {
 	}
 
 	ginbase.ReturnOKJson(c, ic)
+	return
+}
+
+// 读取指定名字的分类
+// 因为不同的level可以有相同的名字，所以这里还要传递一个 level 值
+// 默认为 1
+func getInfiniteClassByName(c *gin.Context, name string) {
+	iLevel := 1
+	level := c.Query("level")
+	if level != "" {
+		il, err := strconv.Atoi(level)
+		if err == nil {
+			iLevel = il
+		}
+	}
+
+	// 是否包含子类
+	child := c.Query("children")
+	child = strings.ToUpper(child)
+	more := false
+	if child == "Y" {
+		more = true
+	}
+
+	// disable 参数，如果不传，就是选择所有，如果传了，就是指定状态的
+	// Y-禁用的 N-非禁用，空，不筛选
+	disable := c.Query("disable")
+	disable = strings.ToUpper(disable)
+
+	if disable != "" {
+		if disable != "Y" && disable != "N" {
+			ginbase.ReturnErrJson(c, "错误的 disable 参数值")
+			return
+		}
+	}
+
+	domain := c.Param("domain")
+
+	db := ginbase.NewDs(Opt.MgoOption)
+	defer db.Close()
+
+	f := bson.M{
+		"domain": domain,
+		"level": iLevel,
+		"name": bson.M{"$regex": name},
+	}
+	if disable == "Y" {
+		f["disable"] = true
+	} else if disable == "N" {
+		f["disable"] = false
+	}
+
+	var ics []*InfiniteClass
+	err := db.C(Opt.TbName).Find(f).All(&ics)
+	if err != nil {
+		ginbase.ReturnErrJson(c, err.Error())
+		return
+	}
+
+	if more {
+		// 读取子类
+		for _, ic := range ics {
+			err = QueryAllChildrenByParentClass(db, ic, disable)
+			if err != nil {
+				// todo
+			}
+		}
+	}
+
+	ginbase.ReturnOKJson(c, ics)
 	return
 }
 
@@ -188,6 +290,8 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 		return
 	}
 
+	domain := c.Param("domain")
+
 	db := ginbase.NewDs(Opt.MgoOption)
 	defer db.Close()
 
@@ -198,7 +302,19 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 		more = true
 	}
 
-	ics, err := QueryInfiniteClassByLevel(db, ilevel, more)
+	// disable 参数，如果不传，就是选择所有，如果传了，就是指定状态的
+	// Y-禁用的 N-非禁用，空，不筛选
+	disable := c.Query("disable")
+	disable = strings.ToUpper(disable)
+
+	if disable != "" {
+		if disable != "Y" && disable != "N" {
+			ginbase.ReturnErrJson(c, "错误的 disable 参数值")
+			return
+		}
+	}
+
+	ics, err := QueryInfiniteClassByLevel(db, domain, ilevel, disable, more)
 	if err != nil {
 		ginbase.ReturnErrJson(c, err.Error())
 		return

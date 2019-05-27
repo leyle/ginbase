@@ -21,12 +21,13 @@ var Opt *ClassOption
 // 无限极分类
 type InfiniteClass struct {
 	Id string `json:"id" bson:"_id"`
-	ParentId string `json:"parentId" bson:"parentId"`
+	ParentId string `json:"pid" bson:"parentId"`
 	Name string `json:"name" bson:"name"`
 	Icon string `json:"icon" bson:"icon"` // 图标
 	Info string `json:"info" bson:"info"` // 描述信息
 	Level int `json:"level" bson:"level"`
 	Disable bool `json:"disable" bson:"disable"` // 是否禁用
+	Domain string `json:"domain" bson:"domain"` // 归属于哪个域，使用这个数据
 	Children []*InfiniteClass `json:"children" bson:"-"` // 下一级
 }
 
@@ -53,14 +54,14 @@ func CalcLevelByParentId(db *ginbase.Ds, pid string) (int, error) {
 }
 
 // 新建分类
-func NewInfiniteClass(db *ginbase.Ds, pid, name, icon, info string) (*InfiniteClass, error) {
-	dbc, err := GetInfiniteClassByParentIdAndName(db, pid, name)
+func NewInfiniteClass(db *ginbase.Ds, pid, name, icon, info, domain string) (*InfiniteClass, error) {
+	dbc, err := GetInfiniteClassByParentIdAndName(db, pid, name, domain)
 	if err != nil {
 		return nil, err
 	}
 
 	if dbc != nil {
-		e := fmt.Errorf("新建分类时，已存在父级为[%s]的子分类名[%s]", pid, name)
+		e := fmt.Errorf("新建分类时，已存在domain[%s]父级为[%s]的子分类名[%s]", domain, pid, name)
 		Logger.Error(e.Error())
 		return nil, e
 	}
@@ -97,6 +98,7 @@ func NewInfiniteClass(db *ginbase.Ds, pid, name, icon, info string) (*InfiniteCl
 		Icon: icon,
 		Info: info,
 		Level: curLevel,
+		Domain: domain,
 		Disable: false,
 	}
 
@@ -110,16 +112,17 @@ func NewInfiniteClass(db *ginbase.Ds, pid, name, icon, info string) (*InfiniteCl
 }
 
 // 根据 name 和 parentId 读取分类信息
-func GetInfiniteClassByParentIdAndName(db *ginbase.Ds, pid, name string) (*InfiniteClass, error) {
+func GetInfiniteClassByParentIdAndName(db *ginbase.Ds, pid, name, domain string) (*InfiniteClass, error) {
 	f := bson.M{
 		"parentId": pid,
 		"name": name,
+		"domain": domain,
 	}
 
 	var c *InfiniteClass
 	err := db.C(Opt.TbName).Find(f).One(&c)
 	if err != nil && err != mgo.ErrNotFound {
-		Logger.Errorf("根据ParentId[%s]和name[%s]查询分类信息失败, %s", pid, name, err.Error())
+		Logger.Errorf("根据ParentId[%s]和name[%s]及domain[%s]查询分类信息失败, %s", pid, name, domain, err.Error())
 		return nil, err
 	}
 
@@ -139,11 +142,21 @@ func GetInfiniteClassById(db *ginbase.Ds, id string) (*InfiniteClass, error) {
 }
 
 // 根据 parentId，递归读取其所有的下级
-func QueryAllChildrenByParentClass(db *ginbase.Ds, pic *InfiniteClass) (err error) {
+// all 参数
+func QueryAllChildrenByParentClass(db *ginbase.Ds, pic *InfiniteClass, disable string) (err error) {
 	var ics []*InfiniteClass
 	f := bson.M{
 		"parentId": pic.Id,
+		"domain": pic.Domain,
 	}
+	if disable == "Y" {
+		f["disable"] = true
+	} else if disable == "N" {
+		f["disable"] = false
+	} else {
+		// 不做处理，筛选全部信息
+	}
+
 	err = db.C(Opt.TbName).Find(f).All(&ics)
 	if err != nil {
 		Logger.Errorf("根据parent[%s][%s]读取其子分类失败, %s", pic.Id, pic.Name, err.Error())
@@ -152,7 +165,7 @@ func QueryAllChildrenByParentClass(db *ginbase.Ds, pic *InfiniteClass) (err erro
 
 	for _, ic := range ics {
 		pic.Children = append(pic.Children, ic)
-		err = QueryAllChildrenByParentClass(db, ic)
+		err = QueryAllChildrenByParentClass(db, ic, disable)
 		if err != nil {
 			// 不暂停？还是跳出循环？todo
 		}
@@ -162,11 +175,20 @@ func QueryAllChildrenByParentClass(db *ginbase.Ds, pic *InfiniteClass) (err erro
 }
 
 // 读取指定 level 的分类
-func QueryInfiniteClassByLevel(db *ginbase.Ds, level int, more bool) ([]*InfiniteClass, error) {
+func QueryInfiniteClassByLevel(db *ginbase.Ds, domain string, level int, disable string, more bool) ([]*InfiniteClass, error) {
 	var ics []*InfiniteClass
 	var err error
 	f := bson.M{
+		"domain": domain,
 		"level": level,
+	}
+
+	if disable == "Y" {
+		f["disable"] = true
+	} else if disable == "N" {
+		f["disable"] = false
+	} else {
+		// 不做处理，筛选全部状态
 	}
 
 	err = db.C(Opt.TbName).Find(f).All(&ics)
@@ -178,7 +200,7 @@ func QueryInfiniteClassByLevel(db *ginbase.Ds, level int, more bool) ([]*Infinit
 	if more {
 		// 对于每一个分类，读取其所有的子类
 		for _, ic := range ics {
-			err = QueryAllChildrenByParentClass(db, ic)
+			err = QueryAllChildrenByParentClass(db, ic, disable)
 			if err != nil {
 				// todo
 			}
