@@ -22,5 +22,8 @@ func CategoryRouter(g *gin.RouterGroup) {
 
 		// 读取指定 level 的分类列表
 		catR.GET("/level/:level", QueryLevelInfiniteClassHandler)
+
+		// 读取分类的 parentId 是指定值的那些分类
+		catR.GET("/pid/:id", QueryInfiniteClassUseParentIdHandler)
 	}
 }

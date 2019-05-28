@@ -323,3 +323,43 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 	ginbase.ReturnOKJson(c,  ics)
 	return
 }
+
+// 读取 parentId 是指定值的分类列表，仅包含当前层级， 不包含下一层
+func QueryInfiniteClassUseParentIdHandler(c *gin.Context) {
+	pid := c.Param("id")
+
+	db := ginbase.NewDs(Opt.MgoOption)
+	defer db.Close()
+
+	// disable 参数，如果不传，就是选择所有，如果传了，就是指定状态的
+	// Y-禁用的 N-非禁用，空，不筛选
+	disable := c.Query("disable")
+	disable = strings.ToUpper(disable)
+
+	if disable != "" {
+		if disable != "Y" && disable != "N" {
+			ginbase.ReturnErrJson(c, "错误的 disable 参数值")
+			return
+		}
+	}
+
+	f := bson.M{
+		"parentId": pid,
+	}
+	if disable == "Y" {
+		f["disable"] = true
+	} else if disable == "N" {
+		f["disable"] = false
+	}
+
+	var ics []*InfiniteClass
+	err := db.C(Opt.TbName).Find(f).All(&ics)
+	if err != nil {
+		ginbase.ReturnErrJson(c, err.Error())
+		return
+	}
+
+	ginbase.ReturnOKJson(c, ics)
+	return
+}
+
