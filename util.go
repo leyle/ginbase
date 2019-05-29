@@ -133,6 +133,8 @@ func HttpGet(reqUrl string, values map[string][]string) (*http.Response, error) 
 	return resp, nil
 }
 
+var MAX_ONE_PAGE_SIZE = 100
+
 func GetPageAndSize(c *gin.Context) (page, size, skip int) {
 	p := c.Query("page")
 	s := c.Query("size")
@@ -153,8 +155,8 @@ func GetPageAndSize(c *gin.Context) (page, size, skip int) {
 		page = 1
 	}
 
-	if size > 20 {
-		size = 20
+	if size > MAX_ONE_PAGE_SIZE {
+		size = MAX_ONE_PAGE_SIZE
 	}
 
 	skip = (page - 1) * size
