@@ -3,6 +3,7 @@ package ginbase
 import (
 	"github.com/gin-gonic/gin"
 	. "github.com/leyle/gsimplelog"
+	"net/http"
 	"net/http/httputil"
 	"strings"
 )
@@ -66,7 +67,7 @@ func logFunc(c *gin.Context) {
 	method := strings.ToUpper(c.Request.Method)
 	ctype := strings.ToLower(c.Request.Header.Get("Content-Type"))
 	const formData = "multipart/form-data"
-	if strings.Contains(ctype, formData) {
+	if strings.Contains(ctype, formData) || method == http.MethodOptions {
 		Logger.Debugf("REQUEST[%s][%s][%s]", reqId, uri, method)
 	} else {
 		if Debug {
