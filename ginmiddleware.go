@@ -1,11 +1,10 @@
 package ginbase
 
 import (
-	"bytes"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
-	"strings"
 	. "github.com/leyle/gsimplelog"
+	"net/http/httputil"
+	"strings"
 )
 
 const REQUEST_ID_HEADER_KEY = "X-Request-Id"
@@ -66,20 +65,20 @@ func logFunc(c *gin.Context) {
 	uri := c.Request.RequestURI
 	method := strings.ToUpper(c.Request.Method)
 	ctype := strings.ToLower(c.Request.Header.Get("Content-Type"))
-	if strings.Contains(ctype, "application/json") {
-		var err error
-		var body []byte
-		var bodyStr string
-		if c.Request.Body != nil {
-			body, err = ioutil.ReadAll(c.Request.Body)
+	const formData = "multipart/form-data"
+	if strings.Contains(ctype, formData) {
+		Logger.Debugf("REQUEST[%s][%s][%s]", reqId, uri, method)
+	} else {
+		if Debug {
+			rawData, err := httputil.DumpRequest(c.Request, true)
 			if err != nil {
-				Logger.Errorf("读取 requestbody 失败,%s", err.Error())
+				Logger.Errorf("dump request failed, %s", err.Error())
+			} else {
+				Logger.Debugf("REQUEST[%s]\n%s", reqId, string(rawData))
 			}
-			bodyStr = string(body)
-			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		} else {
+			Logger.Debugf("REQUEST[%s][%s][%s]", reqId, uri, method)
 		}
-
-		Logger.Debugf("REQUEST[%s]:[%s][%s]\n%s", reqId, method, uri, bodyStr)
 	}
 
 	c.Next()
