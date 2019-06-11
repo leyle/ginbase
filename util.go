@@ -16,10 +16,8 @@ import (
 	. "github.com/leyle/gsimplelog"
 )
 
-const (
-	HTTP_GET_TIMEOUT = 10 // 10 seconds
-	HTTP_POST_TIMEOUT = 10 // 10 seconds
-)
+var HTTP_GET_TIMEOUT time.Duration = 10 // 10 seconds
+var HTTP_POST_TIMEOUT time.Duration = 10 // 10 seconds
 
 type CurTime struct {
 	Seconds int64 `json:"seconds" bson:"seconds"` // 精确到秒的时间戳
@@ -82,16 +80,21 @@ func GenerateToken(userId string) string {
 	return h
 }
 
-func HttpPost(reqUrl string, data []byte) (*http.Response, error) {
+func HttpPost(reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPost, reqUrl, bytes.NewBuffer(data))
 	if err != nil {
 		Logger.Errorf("对 [%s] 创建 request 失败, %s", reqUrl, err.Error())
 		return nil, err
 	}
 
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+
 	client := &http.Client{
 		Timeout: HTTP_POST_TIMEOUT * time.Second,
 	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		Logger.Errorf("对 [%s] 发起 client.Do() 操作失败, %s", reqUrl, err.Error())
@@ -101,7 +104,8 @@ func HttpPost(reqUrl string, data []byte) (*http.Response, error) {
 	return resp, nil
 }
 
-func HttpGet(reqUrl string, values map[string][]string) (*http.Response, error) {
+func HttpGet(reqUrl string, values map[string][]string, headers map[string]string) (*http.Response, error) {
+	// url query paramaters
 	// https://golang.org/pkg/net/url/#Values
 	urlV := url.Values{}
 	for k, vs := range values {
@@ -120,6 +124,10 @@ func HttpGet(reqUrl string, values map[string][]string) (*http.Response, error) 
 		return nil, err
 	}
 	req.URL.RawQuery = urlV.Encode()
+
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
 
 	client := &http.Client{
 		Timeout: HTTP_GET_TIMEOUT * time.Second,
