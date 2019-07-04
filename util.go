@@ -48,6 +48,12 @@ func GetCurNoSpaceTime() string {
 	return time.Now().Format("20060102150405")
 }
 
+type BaseStruct struct {
+	Id string `json:"id" bson:"_id"`
+	CreateT *CurTime `json:"createT" bson:"createT"`
+	UpdateT *CurTime `json:"updateT" bson:"updateT"`
+}
+
 func Sha256(data string) string {
 	h := sha256.New()
 	h.Write([]byte(data))
@@ -138,6 +144,8 @@ func HttpGet(reqUrl string, values map[string][]string, headers map[string]strin
 		Logger.Errorf("发起get请求do[%s]失败, %s", reqUrl, err.Error())
 		return nil, err
 	}
+
+	Logger.Debugf("HttGet Url: [%v]", reqUrl)
 	return resp, nil
 }
 
