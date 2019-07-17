@@ -85,4 +85,29 @@ func logFunc(c *gin.Context) {
 	c.Next()
 }
 
+// panic recovery，在比如数据库之类的地方，不应该发生错误的地方进行简单处理
+// 抛出错误
+func StopExec(err error) {
+	if err == nil {
+		return
+	}
+	panic(err.Error())
+}
 
+// 恢复回来
+func RecoveryMiddleware(f func(c *gin.Context, err interface{})) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				f(c, err)
+			}
+		}()
+
+		c.Next()
+	}
+}
+
+// 提供一个默认的 recoveryhandler
+func DefaultStopExecHandler(c *gin.Context, err interface{}) {
+	ReturnJson(c, 400, 500, "", err)
+}
