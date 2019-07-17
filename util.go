@@ -196,3 +196,22 @@ func UniqueStringArray(items []string) []string {
 	return ret
 }
 
+// 计算时间偏移,以目标日期的0时开始
+func GetDayStartTimeByOffsetDay(base time.Time, offsetDay int) time.Time {
+	t := base.AddDate(0, 0, offsetDay)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
+
+// 计算星期的偏移
+func GetDayStartTimeByWeekdayOffset(base time.Time, weekday time.Weekday, offsetWeek int) time.Time {
+	offsetDay := int(weekday - base.Weekday()) + (7 * offsetWeek)
+	t := GetDayStartTimeByOffsetDay(base, offsetDay)
+	return t
+}
+
+// 计算指定星期的指定小时的 time
+func GetTimeByWeekdayOffsetAndHourOffset(base time.Time, weekday time.Weekday, offsetWeek, offsetHour int) time.Time {
+	dayStart := GetDayStartTimeByWeekdayOffset(base, weekday, offsetWeek)
+	dst := dayStart.Add(time.Duration(offsetHour) * time.Hour)
+	return dst
+}
