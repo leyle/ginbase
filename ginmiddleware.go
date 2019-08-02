@@ -109,5 +109,5 @@ func RecoveryMiddleware(f func(c *gin.Context, err interface{})) gin.HandlerFunc
 
 // 提供一个默认的 recoveryhandler
 func DefaultStopExecHandler(c *gin.Context, err interface{}) {
-	ReturnJson(c, 400, 500, "", err)
+	ReturnJson(c, 400, 400, "", err)
 }
