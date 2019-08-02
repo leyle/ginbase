@@ -48,6 +48,11 @@ func GetCurNoSpaceTime() string {
 	return time.Now().Format("20060102150405")
 }
 
+func FmtTimestampTime(sec int64) string {
+	tm := time.Unix(sec, 0)
+	return tm.Format("2006-01-02 15:04:05")
+}
+
 type BaseStruct struct {
 	Id string `json:"id" bson:"_id"`
 	CreateT *CurTime `json:"createT" bson:"createT"`
