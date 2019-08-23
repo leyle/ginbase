@@ -72,7 +72,7 @@ func ReturnJson(c *gin.Context, statusCode, code int, msg string, data interface
 		Logger.Errorf("RESPONSE[%s][%s][%s][%d][%d][%s]", reqId, c.Request.RequestURI, c.Request.Method, statusCode, code, msg)
 		c.AbortWithStatusJSON(statusCode, ret)
 	} else {
-		Logger.Tracef("RESPONSE[%s][%s][%s][%s]", reqId, c.Request.RequestURI, c.Request.Method, data)
+		Logger.Debugf("RESPONSE[%s][%s][%s][%s]", reqId, c.Request.RequestURI, c.Request.Method, data)
 		c.JSON(statusCode, ret)
 	}
 }

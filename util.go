@@ -220,3 +220,34 @@ func GetTimeByWeekdayOffsetAndHourOffset(base time.Time, weekday time.Weekday, o
 	dst := dayStart.Add(time.Duration(offsetHour) * time.Hour)
 	return dst
 }
+
+// 转换字符串元到分
+// 加 0.5 的解释见这里 https://stackoverflow.com/questions/46491966/golang-float-to-int-conversion
+func ConvertStrYuanToIntFen(amt string) (int64, error) {
+	f, err := strconv.ParseFloat(amt, 64)
+	if err != nil {
+		Logger.Errorf("转换元到分时，解析字符串[%s]到浮点数失败, %s", amt, err.Error())
+		return -1, err
+	}
+
+	f = f * 100
+	return int64(f + 0.5), nil
+}
+
+// 转换分到元字符串
+func ConvertIntFenToStrYuan(fen int64) string {
+	y := float64(fen) / 100.0
+	s := strconv.FormatFloat(y, 'f', 2, 64)
+	return s
+}
+
+// 转换元浮点数到分整数
+func ConvertFloatYuanToIntFen(amt float64) int64 {
+	amt = amt * 100
+	return int64(amt + 0.5)
+}
+
+// 转换分整数到元浮点数
+func ConvertIntFenToFloatYuan(amt int64) float64 {
+	return float64(amt) / 100.0
+}
