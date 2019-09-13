@@ -10,6 +10,8 @@ import (
 
 const REQUEST_ID_HEADER_KEY = "X-Request-Id"
 
+const ReqIdKey = "REQIDKEY"
+
 var Debug = false
 
 func DummyHandler(c *gin.Context) {
