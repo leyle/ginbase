@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	. "github.com/leyle/gsimplelog"
+	. "github.com/leyle/ginbase/consolelog"
 )
 
 var HTTP_GET_TIMEOUT time.Duration = 10 // 10 seconds
@@ -94,7 +94,7 @@ func GenerateToken(userId string) string {
 func HttpPost(reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPost, reqUrl, bytes.NewBuffer(data))
 	if err != nil {
-		Logger.Errorf("对 [%s] 创建 request 失败, %s", reqUrl, err.Error())
+		Logger.Errorf("","对 [%s] 创建 request 失败, %s", reqUrl, err.Error())
 		return nil, err
 	}
 
@@ -108,7 +108,7 @@ func HttpPost(reqUrl string, data []byte, headers map[string]string) (*http.Resp
 
 	resp, err := client.Do(req)
 	if err != nil {
-		Logger.Errorf("对 [%s] 发起 client.Do() 操作失败, %s", reqUrl, err.Error())
+		Logger.Errorf("","对 [%s] 发起 client.Do() 操作失败, %s", reqUrl, err.Error())
 		return nil, err
 	}
 
@@ -131,7 +131,7 @@ func HttpGet(reqUrl string, values map[string][]string, headers map[string]strin
 
 	req, err := http.NewRequest(http.MethodGet, reqUrl, nil)
 	if err != nil {
-		Logger.Errorf("生成 http get newrequest 失败, %s", err.Error())
+		Logger.Errorf("","生成 http get newrequest 失败, %s", err.Error())
 		return nil, err
 	}
 	req.URL.RawQuery = urlV.Encode()
@@ -146,11 +146,11 @@ func HttpGet(reqUrl string, values map[string][]string, headers map[string]strin
 
 	resp, err := client.Do(req)
 	if err != nil {
-		Logger.Errorf("发起get请求do[%s]失败, %s", reqUrl, err.Error())
+		Logger.Errorf("","发起get请求do[%s]失败, %s", reqUrl, err.Error())
 		return nil, err
 	}
 
-	Logger.Debugf("HttGet Url: [%v]", reqUrl)
+	Logger.Debugf("", "HttGet Url: [%v]", reqUrl)
 	return resp, nil
 }
 
@@ -226,7 +226,7 @@ func GetTimeByWeekdayOffsetAndHourOffset(base time.Time, weekday time.Weekday, o
 func ConvertStrYuanToIntFen(amt string) (int64, error) {
 	f, err := strconv.ParseFloat(amt, 64)
 	if err != nil {
-		Logger.Errorf("转换元到分时，解析字符串[%s]到浮点数失败, %s", amt, err.Error())
+		Logger.Errorf("","转换元到分时，解析字符串[%s]到浮点数失败, %s", amt, err.Error())
 		return -1, err
 	}
 

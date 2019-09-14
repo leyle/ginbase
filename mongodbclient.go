@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/mgo.v2"
-	. "github.com/leyle/gsimplelog"
+	. "github.com/leyle/ginbase/consolelog"
 )
 
 type MgoOption struct {
@@ -37,7 +37,7 @@ func InitMongodbSession(opt *MgoOption) error {
 		url := opt.ConnectUrl()
 		session, err := mgo.Dial(url)
 		if err != nil {
-			Logger.Errorf("初始化连接 mgo 失败,[%s], %s", url, err.Error())
+			Logger.Errorf("", "初始化连接 mgo 失败,[%s], %s", url, err.Error())
 			return err
 		}
 
@@ -47,7 +47,7 @@ func InitMongodbSession(opt *MgoOption) error {
 		}
 	}
 
-	Logger.Debugf("初始化连接 mongodb[%s]成功", opt.String())
+	Logger.Debugf("", "初始化连接 mongodb[%s]成功", opt.String())
 	return nil
 }
 
@@ -77,27 +77,27 @@ func (d *Ds) C(collection string) *mgo.Collection {
 // 创建单键索引
 // 传入的列表中的每一个字段创建一个索引
 func (d *Ds)InsureSingleIndex(collection string, keys []string) error {
-	Logger.Debugf("Insure mongodb [%s] index, %s, starting...", collection, keys)
+	Logger.Debugf("", "Insure mongodb [%s] index, %s, starting...", collection, keys)
 	var err error
 	for _, key := range keys {
 		err = d.C(collection).EnsureIndexKey(key)
 		if err != nil {
-			Logger.Errorf("create [%s] index [%s] failed, %s", collection, key, err.Error())
+			Logger.Errorf("", "create [%s] index [%s] failed, %s", collection, key, err.Error())
 			return err
 		}
 	}
-	Logger.Debugf("Insure mongodb [%s] index, %s, done", collection, keys)
+	Logger.Debugf("", "Insure mongodb [%s] index, %s, done", collection, keys)
 	return nil
 }
 
 // 创建复合索引
 func (d *Ds)InsureCompositeIndex(collection string, keys []string) error {
-	Logger.Debugf("Insure mongodb [%s] index, %s, starting...", collection, keys)
+	Logger.Debugf("", "Insure mongodb [%s] index, %s, starting...", collection, keys)
 	err := d.C(collection).EnsureIndexKey(keys...)
 	if err != nil {
-		Logger.Errorf("create [%s] index [%s] failed, %s", collection, keys, err.Error())
+		Logger.Errorf("", "create [%s] index [%s] failed, %s", collection, keys, err.Error())
 		return err
 	}
-	Logger.Debugf("Insure mongodb [%s] index, %s, done", collection, keys)
+	Logger.Debugf("", "Insure mongodb [%s] index, %s, done", collection, keys)
 	return nil
 }

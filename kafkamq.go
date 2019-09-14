@@ -1,9 +1,9 @@
 package ginbase
 
 import (
-	"fmt"
 	"github.com/Shopify/sarama"
 	cluster "github.com/bsm/sarama-cluster"
+	. "github.com/leyle/ginbase/consolelog"
 )
 
 const DEFAULT_SEND_RETRY_MAX = 5
@@ -20,7 +20,7 @@ type MqOption struct {
 
 
 func(m *MqOption) Info(name string) {
-	fmt.Printf("Current connect [%s] kafka: host[%s], topic[%s], groupId[%s], retrymax[%d]\n", name, m.Host, m.Topic, m.GroupId, m.SendRetryMax)
+	Logger.Infof("", "Current connect [%s] kafka: host[%s], topic[%s], groupId[%s], retrymax[%d]\n", name, m.Host, m.Topic, m.GroupId, m.SendRetryMax)
 }
 
 func NewKafkaProducer(opt *MqOption) (sarama.SyncProducer, error) {
@@ -35,7 +35,7 @@ func NewKafkaProducer(opt *MqOption) (sarama.SyncProducer, error) {
 	cf.Producer.Return.Successes = true
 	producer, err := sarama.NewSyncProducer(opt.Host, cf)
 	if err != nil {
-		fmt.Println("failed to create sync kafka producer", err.Error())
+		Logger.Errorf("", "failed to create sync kafka producer", err.Error())
 		return nil, err
 	}
 
@@ -51,10 +51,10 @@ func SendMsg(producer sarama.SyncProducer, topic, key string, data []byte) error
 
 	partition, offset, err := producer.SendMessage(msg)
 	if err != nil {
-		fmt.Println("send kafka msg failed", topic, key, err.Error())
+		Logger.Errorf("", "send kafka msg failed", topic, key, err.Error())
 		return err
 	}
-	fmt.Printf("msgId: %s, partition: %d, offset: %d\n", key, partition, offset)
+	Logger.Infof("", "msgId: %s, partition: %d, offset: %d\n", key, partition, offset)
 	return nil
 }
 
@@ -67,7 +67,7 @@ func NewKafkaConsumer(opt *MqOption) (*cluster.Consumer, error) {
 	cf.Group.Return.Notifications = true
 	consumer, err := cluster.NewConsumer(opt.Host, opt.GroupId, opt.Topic, cf)
 	if err != nil {
-		fmt.Println("failed to create kafka consumer", err.Error())
+		Logger.Errorf("", "failed to create kafka consumer", err.Error())
 		return nil, err
 	}
 
@@ -84,13 +84,13 @@ func ConsumeMsg(opt *MqOption, handleF func(message *sarama.ConsumerMessage)) er
 
 	go func() {
 		for err := range consumer.Errors() {
-			fmt.Println("consume msg error:", opt.Host, opt.Topic, opt.GroupId, err.Error())
+			Logger.Errorf("", "consume msg error:", opt.Host, opt.Topic, opt.GroupId, err.Error())
 		}
 	}()
 
 	go func() {
 		for ntf := range consumer.Notifications() {
-			fmt.Println("consume msg rebalanced", ntf)
+			Logger.Errorf("", "consume msg rebalanced", ntf)
 		}
 	}()
 
@@ -104,7 +104,7 @@ func ConsumeMsg(opt *MqOption, handleF func(message *sarama.ConsumerMessage)) er
 				}(msg)
 			}
 		case <-opt.Stop:
-			fmt.Println("stop consume", opt.Host, opt.Topic, opt.GroupId)
+			Logger.Warnf("", "stop consume", opt.Host, opt.Topic, opt.GroupId)
 			return nil
 		}
 	}

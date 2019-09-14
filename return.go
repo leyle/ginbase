@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	. "github.com/leyle/gsimplelog"
 	"net/http"
 )
 
@@ -67,12 +66,9 @@ func ReturnJson(c *gin.Context, statusCode, code int, msg string, data interface
 	}
 
 	ret := generateReturnData(code, msg, data)
-	reqId := c.Request.Header.Get(REQUEST_ID_HEADER_KEY)
 	if statusCode != http.StatusOK {
-		Logger.Errorf("RESPONSE[%s][%s][%s][%d][%d][%s]", reqId, c.Request.RequestURI, c.Request.Method, statusCode, code, msg)
 		c.AbortWithStatusJSON(statusCode, ret)
 	} else {
-		Logger.Debugf("RESPONSE[%s][%s][%s][%s]", reqId, c.Request.RequestURI, c.Request.Method, data)
 		c.JSON(statusCode, ret)
 	}
 }

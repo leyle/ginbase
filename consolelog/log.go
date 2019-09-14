@@ -2,7 +2,6 @@ package consolelog
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/leyle/ginbase"
 )
 
@@ -41,67 +40,51 @@ func (l *ConsoleLog) SetLogLevel(level int) {
 	l.Level = level
 }
 
-func (l *ConsoleLog) Debug(c *gin.Context, ps ...interface{}) {
+func (l *ConsoleLog) Debug(reqId string, ps ...interface{}) {
 	if l.Level <= LogLevelDebug {
-		reqId := getReqId(c)
 		fmt.Printf("%s[%s][%s]|%s\n", DebugColor, reqId, ginbase.CurHumanTime(), fmt.Sprint(ps ...))
 	}
 }
 
-func (l *ConsoleLog) Debugf(c *gin.Context, format string, ps ...interface{}) {
+func (l *ConsoleLog) Debugf(reqId string, format string, ps ...interface{}) {
 	if l.Level <= LogLevelDebug {
-		reqId := getReqId(c)
 		fmt.Printf("%s[%s][%s]|%s\n", DebugColor, reqId, ginbase.CurHumanTime(), fmt.Sprintf(format, ps ...))
 	}
 }
 
-func (l *ConsoleLog) Info(c *gin.Context, ps ...interface{}) {
+func (l *ConsoleLog) Info(reqId string, ps ...interface{}) {
 	if l.Level <= LoglevelInfo {
-		reqId := getReqId(c)
 		fmt.Printf("%s[%s][%s]|%s\n", InfoColor, reqId, ginbase.CurHumanTime(), fmt.Sprint(ps ...))
 	}
 }
 
-func (l *ConsoleLog) Infof(c *gin.Context, format string, ps ...interface{}) {
+func (l *ConsoleLog) Infof(reqId string, format string, ps ...interface{}) {
 	if l.Level <= LoglevelInfo {
-		reqId := getReqId(c)
 		fmt.Printf("%s[%s][%s]|%s\n", InfoColor, reqId, ginbase.CurHumanTime(), fmt.Sprintf(format, ps ...))
 	}
 }
 
-func (l *ConsoleLog) Warn(c *gin.Context, ps ...interface{}) {
+func (l *ConsoleLog) Warn(reqId string, ps ...interface{}) {
 	if l.Level <= LogLevelWarn {
-		reqId := getReqId(c)
 		fmt.Printf("%s[%s][%s]|%s\n", WarnColor, reqId, ginbase.CurHumanTime(), fmt.Sprint(ps ...))
 	}
 }
 
-func (l *ConsoleLog) Warnf(c *gin.Context, format string, ps ...interface{}) {
+func (l *ConsoleLog) Warnf(reqId string, format string, ps ...interface{}) {
 	if l.Level <= LogLevelWarn {
-		reqId := getReqId(c)
 		fmt.Printf("%s[%s][%s]|%s\n", WarnColor, reqId, ginbase.CurHumanTime(), fmt.Sprintf(format, ps ...))
 	}
 }
 
-func (l *ConsoleLog) Error(c *gin.Context, ps ...interface{}) {
+func (l *ConsoleLog) Error(reqId string, ps ...interface{}) {
 	if l.Level <= LogLevelError {
-		reqId := getReqId(c)
 		fmt.Printf("%s[%s][%s]|%s\n", ErrorColor, reqId, ginbase.CurHumanTime(), fmt.Sprint(ps ...))
 	}
 }
 
-func (l *ConsoleLog) Errorf(c *gin.Context, format string, ps ...interface{}) {
+func (l *ConsoleLog) Errorf(reqId string, format string, ps ...interface{}) {
 	if l.Level <= LogLevelError {
-		reqId := getReqId(c)
 		fmt.Printf("%s[%s][%s]|%s\n", ErrorColor, reqId, ginbase.CurHumanTime(), fmt.Sprintf(format, ps ...))
 	}
 }
 
-func getReqId(c *gin.Context) string {
-	reqId, ok := c.Get(ginbase.ReqIdKey)
-	if !ok {
-		// 必须panic，因为属于程序错误，忘记配置 reqid 了
-		panic("忘记配置reqid，请检查程序中间件")
-	}
-	return reqId.(string)
-}

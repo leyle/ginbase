@@ -3,7 +3,7 @@ package ginbase
 import (
 	"fmt"
 	"github.com/go-redis/redis"
-	. "github.com/leyle/gsimplelog"
+	. "github.com/leyle/ginbase/consolelog"
 )
 
 type RedisOption struct {
@@ -31,10 +31,10 @@ func NewRedisClient(opt *RedisOption) (*redis.Client, error) {
 	c := redis.NewClient(option)
 	_, err := c.Ping().Result()
 	if err != nil {
-		Logger.Errorf("ping redis[%s]失败, %s", opt.String(), err.Error())
+		Logger.Errorf("", "ping redis[%s]失败, %s", opt.String(), err.Error())
 		return nil, err
 	}
 
-	Logger.Debugf("连接 redis[%s]成功", opt.String())
+	Logger.Debugf("", "连接 redis[%s]成功", opt.String())
 	return c, nil
 }

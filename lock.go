@@ -3,7 +3,7 @@ package ginbase
 import (
 	"github.com/go-redis/redis"
 	"time"
-	. "github.com/leyle/gsimplelog"
+	. "github.com/leyle/ginbase/consolelog"
 )
 
 const (
@@ -29,7 +29,7 @@ func AcquireLock(r *redis.Client, resource string, acquireTimeout, lockTimeout i
 	for time.Now().Unix() < endTime.Unix() {
 		ok, err := r.SetNX(resource, val, lockTimeoutD).Result()
 		if err != nil {
-			Logger.Errorf("设置[%s]的锁失败, %s", resource, err.Error())
+			Logger.Errorf("", "设置[%s]的锁失败, %s", resource, err.Error())
 			return "", false
 		}
 
@@ -47,7 +47,7 @@ func AcquireLock(r *redis.Client, resource string, acquireTimeout, lockTimeout i
 func ReleaseLock(r *redis.Client, resource, val string) bool {
 	v, err := r.Get(resource).Result()
 	if err != nil && err != redis.Nil {
-		Logger.Errorf("释放[%s]的锁失败, %s", err.Error())
+		Logger.Errorf("", "释放[%s]的锁失败, %s", err.Error())
 		return false
 	}
 
