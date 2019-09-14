@@ -2,7 +2,8 @@ package infiniteclass
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/leyle/ginbase"
+	"github.com/leyle/ginbase/dbandmq"
+	"github.com/leyle/ginbase/returnfun"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"strings"
@@ -19,22 +20,22 @@ type NewInfiniteClassForm struct {
 func NewInfiniteClassHandler(c *gin.Context) {
 	var form NewInfiniteClassForm
 	if err := c.BindJSON(&form); err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
 	domain := c.Param("domain")
 
-	db := ginbase.NewDs(Opt.MgoOption)
+	db := dbandmq.NewDs(Opt.MgoOption)
 	defer db.Close()
 
 	ic, err := NewInfiniteClass(db, form.ParentId, form.Name, form.Icon, form.Info, domain)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
-	ginbase.ReturnOKJson(c, ic)
+	returnfun.ReturnOKJson(c, ic)
 	return
 }
 
@@ -47,23 +48,23 @@ type UpdateInfiniteClassForm struct {
 func UpdateInfiniteClassHandler(c *gin.Context) {
 	var form UpdateInfiniteClassForm
 	if err := c.BindJSON(&form); err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
 	id := c.Param("id")
 
-	db := ginbase.NewDs(Opt.MgoOption)
+	db := dbandmq.NewDs(Opt.MgoOption)
 	defer db.Close()
 
 	ic, err := GetInfiniteClassById(db, id)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
 	if ic == nil {
-		ginbase.ReturnErrJson(c, "无指定id的分类信息")
+		returnfun.ReturnErrJson(c, "无指定id的分类信息")
 		return
 	}
 
@@ -72,28 +73,28 @@ func UpdateInfiniteClassHandler(c *gin.Context) {
 	ic.Info = form.Info
 	err = db.C(Opt.TbName).UpdateId(ic.Id, ic)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
-	ginbase.ReturnOKJson(c, "")
+	returnfun.ReturnOKJson(c, "")
 	return
 }
 
 // 禁用分类
 func DisableInfiniteClassHandler(c *gin.Context) {
 	id := c.Param("id")
-	db := ginbase.NewDs(Opt.MgoOption)
+	db := dbandmq.NewDs(Opt.MgoOption)
 	defer db.Close()
 
 	ic, err := GetInfiniteClassById(db, id)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
 	if ic == nil {
-		ginbase.ReturnErrJson(c, "无指定id的分类信息")
+		returnfun.ReturnErrJson(c, "无指定id的分类信息")
 		return
 	}
 
@@ -105,28 +106,28 @@ func DisableInfiniteClassHandler(c *gin.Context) {
 
 	err = db.C(Opt.TbName).UpdateId(ic.Id, update)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
-	ginbase.ReturnOKJson(c, "")
+	returnfun.ReturnOKJson(c, "")
 	return
 }
 
 // 启用分类
 func EnableInfiniteClassHandler(c *gin.Context) {
 	id := c.Param("id")
-	db := ginbase.NewDs(Opt.MgoOption)
+	db := dbandmq.NewDs(Opt.MgoOption)
 	defer db.Close()
 
 	ic, err := GetInfiniteClassById(db, id)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
 	if ic == nil {
-		ginbase.ReturnErrJson(c, "无指定id的分类信息")
+		returnfun.ReturnErrJson(c, "无指定id的分类信息")
 		return
 	}
 
@@ -138,11 +139,11 @@ func EnableInfiniteClassHandler(c *gin.Context) {
 
 	err = db.C(Opt.TbName).UpdateId(ic.Id, update)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
-	ginbase.ReturnOKJson(c, "")
+	returnfun.ReturnOKJson(c, "")
 	return
 }
 
@@ -163,23 +164,23 @@ func GetInfiniteClassInfoHandler(c *gin.Context) {
 	}
 
 	if id == "" && name == "" {
-		ginbase.ReturnErrJson(c, "缺少id或name")
+		returnfun.ReturnErrJson(c, "缺少id或name")
 		return
 	}
 }
 
 func getInfiniteClassById(c *gin.Context, id string) {
-	db := ginbase.NewDs(Opt.MgoOption)
+	db := dbandmq.NewDs(Opt.MgoOption)
 	defer db.Close()
 
 	ic, err := GetInfiniteClassById(db, id)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
 	if ic == nil {
-		ginbase.ReturnErrJson(c, "无指定id的分类数据")
+		returnfun.ReturnErrJson(c, "无指定id的分类数据")
 		return
 	}
 
@@ -190,7 +191,7 @@ func getInfiniteClassById(c *gin.Context, id string) {
 
 	if disable != "" {
 		if disable != "Y" && disable != "N" {
-			ginbase.ReturnErrJson(c, "错误的 disable 参数值")
+			returnfun.ReturnErrJson(c, "错误的 disable 参数值")
 			return
 		}
 	}
@@ -202,12 +203,12 @@ func getInfiniteClassById(c *gin.Context, id string) {
 		// 读取其下级
 		err = QueryAllChildrenByParentClass(db, ic, disable)
 		if err != nil {
-			ginbase.ReturnErrJson(c, err.Error())
+			returnfun.ReturnErrJson(c, err.Error())
 			return
 		}
 	}
 
-	ginbase.ReturnOKJson(c, ic)
+	returnfun.ReturnOKJson(c, ic)
 	return
 }
 
@@ -239,14 +240,14 @@ func getInfiniteClassByName(c *gin.Context, name string) {
 
 	if disable != "" {
 		if disable != "Y" && disable != "N" {
-			ginbase.ReturnErrJson(c, "错误的 disable 参数值")
+			returnfun.ReturnErrJson(c, "错误的 disable 参数值")
 			return
 		}
 	}
 
 	domain := c.Param("domain")
 
-	db := ginbase.NewDs(Opt.MgoOption)
+	db := dbandmq.NewDs(Opt.MgoOption)
 	defer db.Close()
 
 	f := bson.M{
@@ -263,7 +264,7 @@ func getInfiniteClassByName(c *gin.Context, name string) {
 	var ics []*InfiniteClass
 	err := db.C(Opt.TbName).Find(f).All(&ics)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
@@ -277,7 +278,7 @@ func getInfiniteClassByName(c *gin.Context, name string) {
 		}
 	}
 
-	ginbase.ReturnOKJson(c, ics)
+	returnfun.ReturnOKJson(c, ics)
 	return
 }
 
@@ -286,13 +287,13 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 	level := c.Param("level")
 	ilevel, err := strconv.Atoi(level)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
 	domain := c.Param("domain")
 
-	db := ginbase.NewDs(Opt.MgoOption)
+	db := dbandmq.NewDs(Opt.MgoOption)
 	defer db.Close()
 
 	child := c.Query("children")
@@ -309,18 +310,18 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 
 	if disable != "" {
 		if disable != "Y" && disable != "N" {
-			ginbase.ReturnErrJson(c, "错误的 disable 参数值")
+			returnfun.ReturnErrJson(c, "错误的 disable 参数值")
 			return
 		}
 	}
 
 	ics, err := QueryInfiniteClassByLevel(db, domain, ilevel, disable, more)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
-	ginbase.ReturnOKJson(c,  ics)
+	returnfun.ReturnOKJson(c,  ics)
 	return
 }
 
@@ -328,7 +329,7 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 func QueryInfiniteClassUseParentIdHandler(c *gin.Context) {
 	pid := c.Param("id")
 
-	db := ginbase.NewDs(Opt.MgoOption)
+	db := dbandmq.NewDs(Opt.MgoOption)
 	defer db.Close()
 
 	// disable 参数，如果不传，就是选择所有，如果传了，就是指定状态的
@@ -338,7 +339,7 @@ func QueryInfiniteClassUseParentIdHandler(c *gin.Context) {
 
 	if disable != "" {
 		if disable != "Y" && disable != "N" {
-			ginbase.ReturnErrJson(c, "错误的 disable 参数值")
+			returnfun.ReturnErrJson(c, "错误的 disable 参数值")
 			return
 		}
 	}
@@ -355,11 +356,11 @@ func QueryInfiniteClassUseParentIdHandler(c *gin.Context) {
 	var ics []*InfiniteClass
 	err := db.C(Opt.TbName).Find(f).All(&ics)
 	if err != nil {
-		ginbase.ReturnErrJson(c, err.Error())
+		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
-	ginbase.ReturnOKJson(c, ics)
+	returnfun.ReturnOKJson(c, ics)
 	return
 }
 

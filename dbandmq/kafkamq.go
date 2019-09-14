@@ -1,4 +1,4 @@
-package ginbase
+package dbandmq
 
 import (
 	"github.com/Shopify/sarama"

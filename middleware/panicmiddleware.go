@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/leyle/ginbase"
+	"github.com/leyle/ginbase/returnfun"
 )
 
 // panic 后可以给客户端返回一个期望的数据格式
@@ -30,5 +30,5 @@ func RecoveryMiddleware(f func(c *gin.Context, err error)) gin.HandlerFunc {
 
 // 提供一个默认的 recoveryhandler
 func DefaultStopExecHandler(c *gin.Context, err error) {
-	ginbase.ReturnJson(c, 400, 500, err.Error(), "")
+	returnfun.ReturnJson(c, 400, 500, err.Error(), "")
 }

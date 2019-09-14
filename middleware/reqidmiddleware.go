@@ -3,13 +3,14 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/leyle/ginbase"
+	"github.com/leyle/ginbase/returnfun"
 )
 
 const DefaultReqId = "NoReqId"
 
 func ReqIdMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		reqId := ginbase.GenerateDataId()
+		reqId := returnfun.GenerateDataId()
 		c.Set(ginbase.ReqIdKey, reqId)
 		c.Writer.Header().Set(ginbase.XRequestIdHeaderKey, reqId)
 		c.Next()

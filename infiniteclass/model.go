@@ -2,8 +2,8 @@ package infiniteclass
 
 import (
 	"fmt"
-	"github.com/leyle/ginbase"
-	. "github.com/leyle/gsimplelog"
+	"github.com/leyle/ginbase/dbandmq"
+	"github.com/leyle/ginbase/returnfun"
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -13,7 +13,7 @@ const INFINITE_CLASS_ROOT_ID = "0"
 
 type ClassOption struct {
 	TbName string
-	MgoOption *ginbase.MgoOption
+	MgoOption *dbandmq.MgoOption
 }
 
 var Opt *ClassOption
@@ -36,7 +36,7 @@ func (i *InfiniteClass) Desc() string {
 }
 
 // 根据 parentId 计算当前分类的 level 值
-func CalcLevelByParentId(db *ginbase.Ds, pid string) (int, error) {
+func CalcLevelByParentId(db *dbandmq.Ds, pid string) (int, error) {
 	if pid == INFINITE_CLASS_ROOT_ID {
 		return 1, nil
 	}
@@ -54,7 +54,7 @@ func CalcLevelByParentId(db *ginbase.Ds, pid string) (int, error) {
 }
 
 // 新建分类
-func NewInfiniteClass(db *ginbase.Ds, pid, name, icon, info, domain string) (*InfiniteClass, error) {
+func NewInfiniteClass(db *dbandmq.Ds, pid, name, icon, info, domain string) (*InfiniteClass, error) {
 	dbc, err := GetInfiniteClassByParentIdAndName(db, pid, name, domain)
 	if err != nil {
 		return nil, err
@@ -92,14 +92,14 @@ func NewInfiniteClass(db *ginbase.Ds, pid, name, icon, info, domain string) (*In
 	}
 
 	c := &InfiniteClass{
-		Id: ginbase.GenerateDataId(),
+		Id:       returnfun.GenerateDataId(),
 		ParentId: pid,
-		Name: name,
-		Icon: icon,
-		Info: info,
-		Level: curLevel,
-		Domain: domain,
-		Disable: false,
+		Name:     name,
+		Icon:     icon,
+		Info:     info,
+		Level:    curLevel,
+		Domain:   domain,
+		Disable:  false,
 	}
 
 	err = db.C(Opt.TbName).Insert(c)
@@ -112,7 +112,7 @@ func NewInfiniteClass(db *ginbase.Ds, pid, name, icon, info, domain string) (*In
 }
 
 // 根据 name 和 parentId 读取分类信息
-func GetInfiniteClassByParentIdAndName(db *ginbase.Ds, pid, name, domain string) (*InfiniteClass, error) {
+func GetInfiniteClassByParentIdAndName(db *dbandmq.Ds, pid, name, domain string) (*InfiniteClass, error) {
 	f := bson.M{
 		"parentId": pid,
 		"name": name,
@@ -130,7 +130,7 @@ func GetInfiniteClassByParentIdAndName(db *ginbase.Ds, pid, name, domain string)
 }
 
 // 根据 id 读取分类信息
-func GetInfiniteClassById(db *ginbase.Ds, id string) (*InfiniteClass, error) {
+func GetInfiniteClassById(db *dbandmq.Ds, id string) (*InfiniteClass, error) {
 	var ic *InfiniteClass
 	err := db.C(Opt.TbName).FindId(id).One(&ic)
 	if err != nil && err != mgo.ErrNotFound {
@@ -143,7 +143,7 @@ func GetInfiniteClassById(db *ginbase.Ds, id string) (*InfiniteClass, error) {
 
 // 根据 parentId，递归读取其所有的下级
 // all 参数
-func QueryAllChildrenByParentClass(db *ginbase.Ds, pic *InfiniteClass, disable string) (err error) {
+func QueryAllChildrenByParentClass(db *dbandmq.Ds, pic *InfiniteClass, disable string) (err error) {
 	var ics []*InfiniteClass
 	f := bson.M{
 		"parentId": pic.Id,
@@ -175,7 +175,7 @@ func QueryAllChildrenByParentClass(db *ginbase.Ds, pic *InfiniteClass, disable s
 }
 
 // 读取指定 level 的分类
-func QueryInfiniteClassByLevel(db *ginbase.Ds, domain string, level int, disable string, more bool) ([]*InfiniteClass, error) {
+func QueryInfiniteClassByLevel(db *dbandmq.Ds, domain string, level int, disable string, more bool) ([]*InfiniteClass, error) {
 	var ics []*InfiniteClass
 	var err error
 	f := bson.M{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/leyle/ginbase"
+	"github.com/leyle/ginbase/returnfun"
 	"testing"
 )
 
@@ -19,7 +20,7 @@ func TestColorFormat(t *testing.T) {
 	hello := "some hello msg"
 
 	c := &gin.Context{}
-	c.Set(ginbase.ReqIdKey, ginbase.GenerateDataId())
+	c.Set(ginbase.ReqIdKey, returnfun.GenerateDataId())
 
 	Logger.Debug(c, hello)
 	Logger.Debugf(c, "[Requst]%s world", hello)
