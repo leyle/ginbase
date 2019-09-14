@@ -1,4 +1,4 @@
-package ginbase
+package constant
 
 var Debug = false
 

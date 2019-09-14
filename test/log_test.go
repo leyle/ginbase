@@ -3,8 +3,8 @@ package test
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/leyle/ginbase"
 	"github.com/leyle/ginbase/consolelog"
+	"github.com/leyle/ginbase/constant"
 	"github.com/leyle/ginbase/util"
 	"testing"
 )
@@ -21,7 +21,7 @@ func TestColorFormat(t *testing.T) {
 	hello := "some hello msg"
 
 	c := &gin.Context{}
-	c.Set(ginbase.ReqIdKey, util.GenerateDataId())
+	c.Set(constant.ReqIdKey, util.GenerateDataId())
 
 	consolelog.Logger.Debug(c, hello)
 	consolelog.Logger.Debugf(c, "[Requst]%s world", hello)
