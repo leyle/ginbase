@@ -1,4 +1,4 @@
-package returnfun
+package util
 
 import (
 	"bytes"

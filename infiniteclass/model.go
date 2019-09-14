@@ -3,7 +3,7 @@ package infiniteclass
 import (
 	"fmt"
 	"github.com/leyle/ginbase/dbandmq"
-	"github.com/leyle/ginbase/returnfun"
+	"github.com/leyle/ginbase/util"
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -92,7 +92,7 @@ func NewInfiniteClass(db *dbandmq.Ds, pid, name, icon, info, domain string) (*In
 	}
 
 	c := &InfiniteClass{
-		Id:       returnfun.GenerateDataId(),
+		Id:       util.GenerateDataId(),
 		ParentId: pid,
 		Name:     name,
 		Icon:     icon,

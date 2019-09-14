@@ -3,7 +3,7 @@ package dbandmq
 import (
 	"github.com/go-redis/redis"
 	. "github.com/leyle/ginbase/consolelog"
-	"github.com/leyle/ginbase/returnfun"
+	"github.com/leyle/ginbase/util"
 	"time"
 )
 
@@ -24,7 +24,7 @@ func AcquireLock(r *redis.Client, resource string, acquireTimeout, lockTimeout i
 		lockTimeout = DEFAULT_LOCK_KEY_TIMEOUT
 	}
 
-	val := returnfun.GenerateDataId()
+	val := util.GenerateDataId()
 	lockTimeoutD := time.Duration(lockTimeout) * time.Second
 	endTime := time.Now().Add(time.Duration(acquireTimeout) * time.Second)
 	for time.Now().Unix() < endTime.Unix() {
