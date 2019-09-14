@@ -1,9 +1,10 @@
-package middleware
+package test
 
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	. "github.com/leyle/ginbase/consolelog"
+	"github.com/leyle/ginbase/middleware"
 	"testing"
 	"time"
 )
@@ -18,7 +19,7 @@ func TestLog(t *testing.T) {
 	r.Use(RecoveryMiddleware(DefaultStopExecHandler))
 	 */
 
-	r := SetupGin()
+	r := middleware.SetupGin()
 
 	// IgnoreReadReqBodyPath = []string{"/api/hello"}
 
@@ -33,8 +34,8 @@ func TestLog(t *testing.T) {
 }
 
 func handler(c *gin.Context) {
-	Logger.Info(GetReqId(c), "shiyxiiazhege")
+	Logger.Info(middleware.GetReqId(c), "shiyxiiazhege")
 	time.Sleep(2 * time.Millisecond)
-	StopExec(errors.New("one error"))
+	middleware.StopExec(errors.New("one error"))
 	c.JSON(200, gin.H{"hello": "world"})
 }

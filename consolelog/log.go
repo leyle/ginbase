@@ -2,7 +2,7 @@ package consolelog
 
 import (
 	"fmt"
-	"github.com/leyle/ginbase/util"
+	"time"
 )
 
 const (
@@ -42,49 +42,52 @@ func (l *ConsoleLog) SetLogLevel(level int) {
 
 func (l *ConsoleLog) Debug(reqId string, ps ...interface{}) {
 	if l.Level <= LogLevelDebug {
-		fmt.Printf("%s[%s][%s]|%s\n", DebugColor, reqId, util.CurHumanTime(), fmt.Sprint(ps ...))
+		fmt.Printf("%s[%s][%s]|%s\n", DebugColor, reqId, curHumanTime(), fmt.Sprint(ps ...))
 	}
 }
 
 func (l *ConsoleLog) Debugf(reqId string, format string, ps ...interface{}) {
 	if l.Level <= LogLevelDebug {
-		fmt.Printf("%s[%s][%s]|%s\n", DebugColor, reqId, util.CurHumanTime(), fmt.Sprintf(format, ps ...))
+		fmt.Printf("%s[%s][%s]|%s\n", DebugColor, reqId, curHumanTime(), fmt.Sprintf(format, ps ...))
 	}
 }
 
 func (l *ConsoleLog) Info(reqId string, ps ...interface{}) {
 	if l.Level <= LoglevelInfo {
-		fmt.Printf("%s[%s][%s]|%s\n", InfoColor, reqId, util.CurHumanTime(), fmt.Sprint(ps ...))
+		fmt.Printf("%s[%s][%s]|%s\n", InfoColor, reqId, curHumanTime(), fmt.Sprint(ps ...))
 	}
 }
 
 func (l *ConsoleLog) Infof(reqId string, format string, ps ...interface{}) {
 	if l.Level <= LoglevelInfo {
-		fmt.Printf("%s[%s][%s]|%s\n", InfoColor, reqId, util.CurHumanTime(), fmt.Sprintf(format, ps ...))
+		fmt.Printf("%s[%s][%s]|%s\n", InfoColor, reqId, curHumanTime(), fmt.Sprintf(format, ps ...))
 	}
 }
 
 func (l *ConsoleLog) Warn(reqId string, ps ...interface{}) {
 	if l.Level <= LogLevelWarn {
-		fmt.Printf("%s[%s][%s]|%s\n", WarnColor, reqId, util.CurHumanTime(), fmt.Sprint(ps ...))
+		fmt.Printf("%s[%s][%s]|%s\n", WarnColor, reqId, curHumanTime(), fmt.Sprint(ps ...))
 	}
 }
 
 func (l *ConsoleLog) Warnf(reqId string, format string, ps ...interface{}) {
 	if l.Level <= LogLevelWarn {
-		fmt.Printf("%s[%s][%s]|%s\n", WarnColor, reqId, util.CurHumanTime(), fmt.Sprintf(format, ps ...))
+		fmt.Printf("%s[%s][%s]|%s\n", WarnColor, reqId, curHumanTime(), fmt.Sprintf(format, ps ...))
 	}
 }
 
 func (l *ConsoleLog) Error(reqId string, ps ...interface{}) {
 	if l.Level <= LogLevelError {
-		fmt.Printf("%s[%s][%s]|%s\n", ErrorColor, reqId, util.CurHumanTime(), fmt.Sprint(ps ...))
+		fmt.Printf("%s[%s][%s]|%s\n", ErrorColor, reqId, curHumanTime(), fmt.Sprint(ps ...))
 	}
 }
 
 func (l *ConsoleLog) Errorf(reqId string, format string, ps ...interface{}) {
 	if l.Level <= LogLevelError {
-		fmt.Printf("%s[%s][%s]|%s\n", ErrorColor, reqId, util.CurHumanTime(), fmt.Sprintf(format, ps ...))
+		fmt.Printf("%s[%s][%s]|%s\n", ErrorColor, reqId, curHumanTime(), fmt.Sprintf(format, ps ...))
 	}
 }
 
+func curHumanTime() string {
+	return time.Now().Format("2006-01-02 15:04:05")
+}

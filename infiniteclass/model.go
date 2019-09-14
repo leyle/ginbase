@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	. "github.com/leyle/ginbase/consolelog"
 )
 
 const INFINITE_CLASS_ROOT_ID = "0"
@@ -62,7 +63,7 @@ func NewInfiniteClass(db *dbandmq.Ds, pid, name, icon, info, domain string) (*In
 
 	if dbc != nil {
 		e := fmt.Errorf("新建分类时，已存在domain[%s]父级为[%s]的子分类名[%s]", domain, pid, name)
-		Logger.Error(e.Error())
+		Logger.Error("", e.Error())
 		return nil, e
 	}
 
@@ -75,13 +76,13 @@ func NewInfiniteClass(db *dbandmq.Ds, pid, name, icon, info, domain string) (*In
 
 		if dbpc == nil {
 			e := fmt.Errorf("新建分类时，不存在指定的父级[%s]信息", pid)
-			Logger.Error(e.Error())
+			Logger.Error("", e.Error())
 			return nil, e
 		}
 
 		if dbpc.Disable {
 			e := fmt.Errorf("新建分类时，父级[%s][%s]分类已被禁用", pid, dbpc.Name)
-			Logger.Error(e.Error())
+			Logger.Error("", e.Error())
 			return nil, e
 		}
 	}
@@ -104,7 +105,7 @@ func NewInfiniteClass(db *dbandmq.Ds, pid, name, icon, info, domain string) (*In
 
 	err = db.C(Opt.TbName).Insert(c)
 	if err != nil {
-		Logger.Errorf("新建%s失败,%s", c.Desc(), err.Error())
+		Logger.Errorf("", "新建%s失败,%s", c.Desc(), err.Error())
 		return nil, err
 	}
 
@@ -122,7 +123,7 @@ func GetInfiniteClassByParentIdAndName(db *dbandmq.Ds, pid, name, domain string)
 	var c *InfiniteClass
 	err := db.C(Opt.TbName).Find(f).One(&c)
 	if err != nil && err != mgo.ErrNotFound {
-		Logger.Errorf("根据ParentId[%s]和name[%s]及domain[%s]查询分类信息失败, %s", pid, name, domain, err.Error())
+		Logger.Errorf("", "根据ParentId[%s]和name[%s]及domain[%s]查询分类信息失败, %s", pid, name, domain, err.Error())
 		return nil, err
 	}
 
@@ -134,7 +135,7 @@ func GetInfiniteClassById(db *dbandmq.Ds, id string) (*InfiniteClass, error) {
 	var ic *InfiniteClass
 	err := db.C(Opt.TbName).FindId(id).One(&ic)
 	if err != nil && err != mgo.ErrNotFound {
-		Logger.Errorf("根据id[%s]读取分类信息失败, %s", id, err.Error())
+		Logger.Errorf("", "根据id[%s]读取分类信息失败, %s", id, err.Error())
 		return nil, err
 	}
 
@@ -159,7 +160,7 @@ func QueryAllChildrenByParentClass(db *dbandmq.Ds, pic *InfiniteClass, disable s
 
 	err = db.C(Opt.TbName).Find(f).All(&ics)
 	if err != nil {
-		Logger.Errorf("根据parent[%s][%s]读取其子分类失败, %s", pic.Id, pic.Name, err.Error())
+		Logger.Errorf("", "根据parent[%s][%s]读取其子分类失败, %s", pic.Id, pic.Name, err.Error())
 		return err
 	}
 
@@ -193,7 +194,7 @@ func QueryInfiniteClassByLevel(db *dbandmq.Ds, domain string, level int, disable
 
 	err = db.C(Opt.TbName).Find(f).All(&ics)
 	if err != nil {
-		Logger.Errorf("根据level[%d]读取分类列表失败, %s", level, err.Error())
+		Logger.Errorf("", "根据level[%d]读取分类列表失败, %s", level, err.Error())
 		return nil, err
 	}
 
