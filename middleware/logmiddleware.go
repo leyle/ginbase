@@ -74,7 +74,7 @@ func GinLogMiddleware() gin.HandlerFunc {
 		if !ok {
 			Logger.Warnf(GetReqId(c), "处理response数据，转回respwriter失败")
 		} else {
-			if rw.cache.Len() > 0 {
+			if rw.cache.Len() > 0 && !isIgnoreReadBodyPath(c.Request.URL.Path) {
 				respBody = "\n" + rw.cache.String()
 			}
 		}
