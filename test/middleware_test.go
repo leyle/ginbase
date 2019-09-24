@@ -21,6 +21,8 @@ func TestLog(t *testing.T) {
 
 	r := middleware.SetupGin()
 
+	middleware.PrintHeader = true
+
 	// IgnoreReadReqBodyPath = []string{"/api/hello"}
 
 	router := r.Group("/api")

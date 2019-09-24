@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+// 是否打印请求头
+var PrintHeader = false
+
 // 不支持通配符，string equals 匹配模式
 var ignoreReadReqBodyPath = []string{}
 
@@ -38,6 +41,18 @@ func GinLogMiddleware() gin.HandlerFunc {
 		ctype := strings.ToLower(c.Request.Header.Get("Content-Type"))
 		clientIp := c.ClientIP()
 		reqMsg := fmt.Sprintf("[Req][%s][%s][%s][%s]", method, path, clientIp, ctype)
+
+		// 判断是否打印 header
+		if PrintHeader {
+			hmsg := ""
+			for k, v := range c.Request.Header {
+				val := strings.Join(v, " ")
+				hmsg += fmt.Sprintf("%s:%s\n", k, val)
+			}
+			if hmsg != "" {
+				reqMsg += "\n" + hmsg[0: len(hmsg) - 1]
+			}
+		}
 
 		// 判断是否有 request body，如果有，就转存读取
 		if c.Request.ContentLength > 0 && !isIgnoreReadBodyPath(c.Request.URL.Path) {
@@ -95,7 +110,7 @@ type respWriter struct {
 	cache *bytes.Buffer
 }
 
-// 会导致内存增加，性能稍微降低，但是我们觉得值得
+// 会导致内存增加，性能稍微降低，但是我觉得值得
 func (r *respWriter) Write(b []byte) (int, error) {
 	r.cache.Write(b)
 	return r.ResponseWriter.Write(b)

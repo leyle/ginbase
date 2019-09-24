@@ -23,15 +23,17 @@ func TestColorFormat(t *testing.T) {
 	c := &gin.Context{}
 	c.Set(constant.ReqIdKey, util.GenerateDataId())
 
-	consolelog.Logger.Debug(c, hello)
-	consolelog.Logger.Debugf(c, "[Requst]%s world", hello)
+	reqId := util.GenerateDataId()
 
-	consolelog.Logger.Info(c, hello)
-	consolelog.Logger.Infof(c, "[Requst]%s world", hello)
+	consolelog.Logger.Debug(reqId, hello)
+	consolelog.Logger.Debugf(reqId, "[Requst]%s world", hello)
 
-	consolelog.Logger.Warn(c, hello)
-	consolelog.Logger.Warnf(c, "[Requst]%s world", hello)
+	consolelog.Logger.Info(reqId, hello)
+	consolelog.Logger.Infof(reqId, "[Requst]%s world", hello)
 
-	consolelog.Logger.Error(c, hello)
-	consolelog.Logger.Errorf(c, "[Requst]%s world", hello)
+	consolelog.Logger.Warn(reqId, hello)
+	consolelog.Logger.Warnf(reqId, "[Requst]%s world", hello)
+
+	consolelog.Logger.Error(reqId, hello)
+	consolelog.Logger.Errorf(reqId, "[Requst]%s world", hello)
 }
