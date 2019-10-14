@@ -70,6 +70,16 @@ func (d *Ds) Close() {
 	d.Se.Close()
 }
 
+// 为什么不直接叫 Copy，为了避免自动补全时，看错了，把 Copy Close 搞混
+func (d *Ds) CopyDs() *Ds {
+	se := ds.Se.Copy()
+	newDs := &Ds{
+		Se:  se,
+		Opt: ds.Opt,
+	}
+	return newDs
+}
+
 func (d *Ds) C(collection string) *mgo.Collection {
 	return d.Se.DB(d.Opt.Database).C(collection)
 }
