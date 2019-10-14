@@ -1,4 +1,4 @@
-package goupload
+package util
 
 import (
 	"bytes"
@@ -43,6 +43,7 @@ func unPad(src []byte) ([]byte, error) {
 	return src[:(length - unpadding)], nil
 }
 
+// 使用 aes-256-cfb 还是  aes-192-cfb 还是 aes-128-cfb 看 key 的长度
 func Encrypt(key []byte, text string) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
