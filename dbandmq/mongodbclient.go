@@ -1,10 +1,9 @@
 package dbandmq
 
 import (
-	"errors"
 	"fmt"
-	"gopkg.in/mgo.v2"
 	. "github.com/leyle/ginbase/consolelog"
+	"gopkg.in/mgo.v2"
 )
 
 type MgoOption struct {
@@ -53,7 +52,11 @@ func InitMongodbSession(opt *MgoOption) error {
 
 func NewDs(opt *MgoOption) *Ds {
 	if ds == nil {
-		panic(errors.New("未初始化数据库连接"))
+		// 就不用先初始化了
+		err := InitMongodbSession(opt)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	se := ds.Se.Copy()
