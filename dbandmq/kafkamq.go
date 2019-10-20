@@ -35,7 +35,7 @@ func NewKafkaProducer(opt *MqOption) (sarama.SyncProducer, error) {
 	cf.Producer.Return.Successes = true
 	producer, err := sarama.NewSyncProducer(opt.Host, cf)
 	if err != nil {
-		Logger.Errorf("", "failed to create sync kafka producer", err.Error())
+		Logger.Errorf("", "failed to create sync kafka producer, %s", err.Error())
 		return nil, err
 	}
 
@@ -51,10 +51,10 @@ func SendMsg(producer sarama.SyncProducer, topic, key string, data []byte) error
 
 	partition, offset, err := producer.SendMessage(msg)
 	if err != nil {
-		Logger.Errorf("", "send kafka msg failed", topic, key, err.Error())
+		Logger.Errorf("", "send kafka msg failed, %s, %s, %s", topic, key, err.Error())
 		return err
 	}
-	Logger.Infof("", "msgId: %s, partition: %d, offset: %d\n", key, partition, offset)
+	Logger.Infof("", "msgId: %s, partition: %d, offset: %d", key, partition, offset)
 	return nil
 }
 
@@ -67,7 +67,7 @@ func NewKafkaConsumer(opt *MqOption) (*cluster.Consumer, error) {
 	cf.Group.Return.Notifications = true
 	consumer, err := cluster.NewConsumer(opt.Host, opt.GroupId, opt.Topic, cf)
 	if err != nil {
-		Logger.Errorf("", "failed to create kafka consumer", err.Error())
+		Logger.Errorf("", "failed to create kafka consumer, %s", err.Error())
 		return nil, err
 	}
 
@@ -84,13 +84,13 @@ func ConsumeMsg(opt *MqOption, handleF func(message *sarama.ConsumerMessage)) er
 
 	go func() {
 		for err := range consumer.Errors() {
-			Logger.Errorf("", "consume msg error:", opt.Host, opt.Topic, opt.GroupId, err.Error())
+			Logger.Errorf("", "consume msg error: %s, %s, %s, %s", opt.Host, opt.Topic, opt.GroupId, err.Error())
 		}
 	}()
 
 	go func() {
 		for ntf := range consumer.Notifications() {
-			Logger.Errorf("", "consume msg rebalanced", ntf)
+			Logger.Errorf("", "consume msg rebalanced, %v", ntf)
 		}
 	}()
 
@@ -104,7 +104,7 @@ func ConsumeMsg(opt *MqOption, handleF func(message *sarama.ConsumerMessage)) er
 				}(msg)
 			}
 		case <-opt.Stop:
-			Logger.Warnf("", "stop consume", opt.Host, opt.Topic, opt.GroupId)
+			Logger.Warnf("", "stop consume: %s, %s, %s", opt.Host, opt.Topic, opt.GroupId)
 			return nil
 		}
 	}

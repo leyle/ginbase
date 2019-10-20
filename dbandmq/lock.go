@@ -48,7 +48,7 @@ func AcquireLock(r *redis.Client, resource string, acquireTimeout, lockTimeout i
 func ReleaseLock(r *redis.Client, resource, val string) bool {
 	v, err := r.Get(resource).Result()
 	if err != nil && err != redis.Nil {
-		Logger.Errorf("", "释放[%s]的锁失败, %s", err.Error())
+		Logger.Errorf("", "释放[%s]的锁失败, %s", resource, err.Error())
 		return false
 	}
 

@@ -36,7 +36,11 @@ type IndexKey struct {
 	UniqueKey []string
 }
 
-var IndexKeys = []*IndexKey{}
+var indexKeys = []*IndexKey{}
+
+func AddIndexKey(ik *IndexKey) {
+	indexKeys = append(indexKeys, ik)
+}
 
 var ds *Ds = nil
 
@@ -144,7 +148,7 @@ func (d *Ds)InsureUniqueIndex(collection string, keys []string) error {
 
 func (d *Ds)InsureCollectionKeys() error {
 	var err error
-	for _, ik := range IndexKeys {
+	for _, ik := range indexKeys {
 		name := ik.Collection
 		if len(ik.SingleKey) > 0 {
 			err = d.InsureSingleIndex(name, ik.SingleKey)
@@ -168,7 +172,6 @@ func (d *Ds)InsureCollectionKeys() error {
 				return err
 			}
 		}
-
 	}
 	return nil
 }
