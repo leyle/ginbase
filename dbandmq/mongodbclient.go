@@ -29,6 +29,15 @@ func (opt *MgoOption) ConnectUrl() string {
 	return url
 }
 
+type IndexKey struct {
+	Collection string
+	SingleKey []string
+	CompositeKeys [][]string
+	UniqueKey []string
+}
+
+var IndexKeys = []*IndexKey{}
+
 var ds *Ds = nil
 
 func InitMongodbSession(opt *MgoOption) error {
@@ -112,5 +121,54 @@ func (d *Ds)InsureCompositeIndex(collection string, keys []string) error {
 		return err
 	}
 	Logger.Debugf("", "Insure mongodb [%s] index, %s, done", collection, keys)
+	return nil
+}
+
+func (d *Ds)InsureUniqueIndex(collection string, keys []string) error {
+	Logger.Debugf("", "Insure mongodb [%s] unique index, %s, starting...", collection, keys)
+	var err error
+	for _, key := range keys {
+		err = d.C(collection).EnsureIndex(mgo.Index{
+			Key: []string{key},
+			Unique: true,
+		})
+
+		if err != nil {
+			Logger.Errorf("", "create [%s] unqiue index [%s] failed, %s", collection, key, err.Error())
+			return err
+		}
+	}
+	Logger.Debugf("", "Insure mongodb [%s] unique index, %s, done", collection, keys)
+	return nil
+}
+
+func (d *Ds)InsureCollectionKeys() error {
+	var err error
+	for _, ik := range IndexKeys {
+		name := ik.Collection
+		if len(ik.SingleKey) > 0 {
+			err = d.InsureSingleIndex(name, ik.SingleKey)
+			if err != nil {
+				return err
+			}
+		}
+
+		if len(ik.CompositeKeys) > 0 {
+			for _, ckey := range ik.CompositeKeys {
+				err = d.InsureCompositeIndex(name, ckey)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		if len(ik.UniqueKey) > 0 {
+			err = d.InsureUniqueIndex(name, ik.UniqueKey)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
 	return nil
 }
