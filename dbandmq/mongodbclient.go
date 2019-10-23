@@ -6,26 +6,26 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-type MgoOption struct {
-	Host string
-	Port string
-	User string
-	Passwd string
-	Database string
+type mgoOption struct {
+	host string
+	port string
+	user string
+	passwd string
+	database string
 }
 
-func (opt *MgoOption) String() string {
-	return fmt.Sprintf("[%s:%s][%s:%s]%s", opt.Host, opt.Port, opt.User, opt.Passwd, opt.Database)
+func (opt *mgoOption) String() string {
+	return fmt.Sprintf("[%s:%s][%s:%s]%s", opt.host, opt.port, opt.user, "******", opt.database)
 }
 
 type Ds struct {
 	Se *mgo.Session
-	Opt *MgoOption
+	opt *mgoOption
 }
 
-func (opt *MgoOption) ConnectUrl() string {
+func (opt *mgoOption) ConnectUrl() string {
 	// mongodb://myuser:mypass@localhost:40001,otherhost:40001/mydb
-	url := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?connect=direct", opt.User, opt.Passwd, opt.Host, opt.Port, opt.Database)
+	url := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?connect=direct", opt.user, opt.passwd, opt.host, opt.port, opt.database)
 	return url
 }
 
@@ -42,44 +42,35 @@ func AddIndexKey(ik *IndexKey) {
 	indexKeys = append(indexKeys, ik)
 }
 
-var ds *Ds = nil
+func initMongodbSession(opt *mgoOption) *Ds {
+	url := opt.ConnectUrl()
+	session, err := mgo.Dial(url)
+	if err != nil {
+		Logger.Errorf("", "初始化连接 mgo 失败,[%s], %s", url, err.Error())
+		panic(err)
+	}
 
-func InitMongodbSession(opt *MgoOption) error {
-	if ds == nil {
-		url := opt.ConnectUrl()
-		session, err := mgo.Dial(url)
-		if err != nil {
-			Logger.Errorf("", "初始化连接 mgo 失败,[%s], %s", url, err.Error())
-			return err
-		}
-
-		ds = &Ds{
-			Se: session,
-			Opt: opt,
-		}
+	ds := &Ds{
+		Se: session,
+		opt: opt,
 	}
 
 	Logger.Debugf("", "初始化连接 mongodb[%s]成功", opt.String())
-	return nil
+	return ds
 }
 
-func NewDs(opt *MgoOption) *Ds {
-	if ds == nil {
-		// 就不用先初始化了
-		err := InitMongodbSession(opt)
-		if err != nil {
-			panic(err)
-		}
+func NewDs(host, port, user, passwd, dbname string) *Ds {
+	opt := &mgoOption{
+		host:     host,
+		port:     port,
+		user:     user,
+		passwd:   passwd,
+		database: dbname,
 	}
 
-	se := ds.Se.Copy()
+	ds := initMongodbSession(opt)
 
-	newDs := &Ds{
-		Se: se,
-		Opt: opt,
-	}
-
-	return newDs
+	return ds
 }
 
 func (d *Ds) Close() {
@@ -88,16 +79,16 @@ func (d *Ds) Close() {
 
 // 为什么不直接叫 Copy，为了避免自动补全时，看错了，把 Copy Close 搞混
 func (d *Ds) CopyDs() *Ds {
-	se := ds.Se.Copy()
+	se := d.Se.Copy()
 	newDs := &Ds{
 		Se:  se,
-		Opt: ds.Opt,
+		opt: d.opt,
 	}
 	return newDs
 }
 
 func (d *Ds) C(collection string) *mgo.Collection {
-	return d.Se.DB(d.Opt.Database).C(collection)
+	return d.Se.DB(d.opt.database).C(collection)
 }
 
 // 创建单键索引
