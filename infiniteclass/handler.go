@@ -2,7 +2,6 @@ package infiniteclass
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/leyle/ginbase/dbandmq"
 	"github.com/leyle/ginbase/returnfun"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
@@ -26,7 +25,7 @@ func NewInfiniteClassHandler(c *gin.Context) {
 
 	domain := c.Param("domain")
 
-	db := dbandmq.NewDs(Opt.MgoOption)
+	db := Opt.Ds.CopyDs()
 	defer db.Close()
 
 	ic, err := NewInfiniteClass(db, form.ParentId, form.Name, form.Icon, form.Info, domain)
@@ -54,7 +53,7 @@ func UpdateInfiniteClassHandler(c *gin.Context) {
 
 	id := c.Param("id")
 
-	db := dbandmq.NewDs(Opt.MgoOption)
+	db := Opt.Ds.CopyDs()
 	defer db.Close()
 
 	ic, err := GetInfiniteClassById(db, id)
@@ -84,7 +83,7 @@ func UpdateInfiniteClassHandler(c *gin.Context) {
 // 禁用分类
 func DisableInfiniteClassHandler(c *gin.Context) {
 	id := c.Param("id")
-	db := dbandmq.NewDs(Opt.MgoOption)
+	db := Opt.Ds.CopyDs()
 	defer db.Close()
 
 	ic, err := GetInfiniteClassById(db, id)
@@ -117,7 +116,7 @@ func DisableInfiniteClassHandler(c *gin.Context) {
 // 启用分类
 func EnableInfiniteClassHandler(c *gin.Context) {
 	id := c.Param("id")
-	db := dbandmq.NewDs(Opt.MgoOption)
+	db := Opt.Ds.CopyDs()
 	defer db.Close()
 
 	ic, err := GetInfiniteClassById(db, id)
@@ -170,7 +169,7 @@ func GetInfiniteClassInfoHandler(c *gin.Context) {
 }
 
 func getInfiniteClassById(c *gin.Context, id string) {
-	db := dbandmq.NewDs(Opt.MgoOption)
+	db := Opt.Ds.CopyDs()
 	defer db.Close()
 
 	ic, err := GetInfiniteClassById(db, id)
@@ -247,7 +246,7 @@ func getInfiniteClassByName(c *gin.Context, name string) {
 
 	domain := c.Param("domain")
 
-	db := dbandmq.NewDs(Opt.MgoOption)
+	db := Opt.Ds.CopyDs()
 	defer db.Close()
 
 	f := bson.M{
@@ -293,7 +292,7 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 
 	domain := c.Param("domain")
 
-	db := dbandmq.NewDs(Opt.MgoOption)
+	db := Opt.Ds.CopyDs()
 	defer db.Close()
 
 	child := c.Query("children")
@@ -329,7 +328,7 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 func QueryInfiniteClassUseParentIdHandler(c *gin.Context) {
 	pid := c.Param("id")
 
-	db := dbandmq.NewDs(Opt.MgoOption)
+	db := Opt.Ds.CopyDs()
 	defer db.Close()
 
 	// disable 参数，如果不传，就是选择所有，如果传了，就是指定状态的

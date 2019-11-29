@@ -14,7 +14,8 @@ const INFINITE_CLASS_ROOT_ID = "0"
 
 type ClassOption struct {
 	TbName string
-	MgoOption *dbandmq.MgoOption
+	Ds *dbandmq.Ds
+	// MgoOption *dbandmq.MgoOption
 }
 
 var Opt *ClassOption
