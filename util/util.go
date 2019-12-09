@@ -92,9 +92,21 @@ func GenerateToken(userId string) string {
 }
 
 func HttpPost(reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, reqUrl, bytes.NewBuffer(data))
+	return httpRequst(http.MethodPost, reqUrl, data, headers)
+}
+
+func HttpPut(reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
+	return httpRequst(http.MethodPut, reqUrl, data, headers)
+}
+
+func HttpDelete(reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
+	return httpRequst(http.MethodDelete, reqUrl, data, headers)
+}
+
+func httpRequst(method, reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
+	req, err := http.NewRequest(method, reqUrl, bytes.NewBuffer(data))
 	if err != nil {
-		Logger.Errorf("","对 [%s] 创建 request 失败, %s", reqUrl, err.Error())
+		Logger.Errorf("","[%s %s] 创建失败, %s", method, reqUrl, err.Error())
 		return nil, err
 	}
 
@@ -108,7 +120,7 @@ func HttpPost(reqUrl string, data []byte, headers map[string]string) (*http.Resp
 
 	resp, err := client.Do(req)
 	if err != nil {
-		Logger.Errorf("","对 [%s] 发起 client.Do() 操作失败, %s", reqUrl, err.Error())
+		Logger.Errorf("","对 [%s %s] 发起 client.Do() 操作失败, %s", method, reqUrl, err.Error())
 		return nil, err
 	}
 
