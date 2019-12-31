@@ -11,16 +11,16 @@ const PRODUCER_NAME = "PRODUCER"
 const CONSUMER_NAME = "CONSUMER"
 
 type MqOption struct {
-	Host []string
-	Topic []string
-	GroupId string
-	SendRetryMax int
+	Host []string  `json:"host" yaml:"host"`
+	Topic []string `json:"topic" yaml:"topic"`
+	GroupId string `json:"groupid" yaml:"groupid"`
+	SendRetryMax int `json:"sendretrymax" yaml:"sendretrymax"`
 	Stop chan struct{}
 }
 
 
 func(m *MqOption) Info(name string) {
-	Logger.Infof("", "Current connect [%s] kafka: host[%s], topic[%s], groupId[%s], retrymax[%d]\n", name, m.Host, m.Topic, m.GroupId, m.SendRetryMax)
+	Logger.Infof("", "Current connect [%s] kafka: Host[%s], topic[%s], groupId[%s], retrymax[%d]\n", name, m.Host, m.Topic, m.GroupId, m.SendRetryMax)
 }
 
 func NewKafkaProducer(opt *MqOption) (sarama.SyncProducer, error) {

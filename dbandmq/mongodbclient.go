@@ -6,26 +6,26 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-type mgoOption struct {
-	host string
-	port string
-	user string
-	passwd string
-	database string
+type MgoOption struct {
+	Host     string `json:"host" yaml:"host"`
+	Port     string `json:"port" yaml:"port"`
+	User     string `json:"user" yaml:"user"`
+	Passwd   string `json:"passwd" yaml:"passwd"`
+	Database string `json:"database" yaml:"database"`
 }
 
-func (opt *mgoOption) String() string {
-	return fmt.Sprintf("[%s:%s][%s:%s]%s", opt.host, opt.port, opt.user, "******", opt.database)
+func (opt *MgoOption) String() string {
+	return fmt.Sprintf("[%s:%s][%s:%s]%s", opt.Host, opt.Port, opt.User, "******", opt.Database)
 }
 
 type Ds struct {
 	Se *mgo.Session
-	opt *mgoOption
+	opt *MgoOption
 }
 
-func (opt *mgoOption) ConnectUrl() string {
+func (opt *MgoOption) ConnectUrl() string {
 	// mongodb://myuser:mypass@localhost:40001,otherhost:40001/mydb
-	url := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?connect=direct", opt.user, opt.passwd, opt.host, opt.port, opt.database)
+	url := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?connect=direct", opt.User, opt.Passwd, opt.Host, opt.Port, opt.Database)
 	return url
 }
 
@@ -42,7 +42,7 @@ func AddIndexKey(ik *IndexKey) {
 	indexKeys = append(indexKeys, ik)
 }
 
-func initMongodbSession(opt *mgoOption) *Ds {
+func InitMongodbSession(opt *MgoOption) *Ds {
 	url := opt.ConnectUrl()
 	session, err := mgo.Dial(url)
 	if err != nil {
@@ -59,16 +59,17 @@ func initMongodbSession(opt *mgoOption) *Ds {
 	return ds
 }
 
+// 旧代码兼容
 func NewDs(host, port, user, passwd, dbname string) *Ds {
-	opt := &mgoOption{
-		host:     host,
-		port:     port,
-		user:     user,
-		passwd:   passwd,
-		database: dbname,
+	opt := &MgoOption{
+		Host:     host,
+		Port:     port,
+		User:     user,
+		Passwd:   passwd,
+		Database: dbname,
 	}
 
-	ds := initMongodbSession(opt)
+	ds := InitMongodbSession(opt)
 
 	return ds
 }
@@ -88,7 +89,7 @@ func (d *Ds) CopyDs() *Ds {
 }
 
 func (d *Ds) C(collection string) *mgo.Collection {
-	return d.Se.DB(d.opt.database).C(collection)
+	return d.Se.DB(d.opt.Database).C(collection)
 }
 
 // 创建单键索引

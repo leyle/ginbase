@@ -7,10 +7,10 @@ import (
 )
 
 type RedisOption struct {
-	Host string
-	Port string
-	Passwd string
-	DbNum int
+	Host   string `json:"host" yaml:"host"`
+	Port   string `json:"port" yaml:"port"`
+	Passwd string `json:"passwd" yaml:"passwd"`
+	DbNum  int    `json:"dbnum" yaml:"dbnum"`
 }
 
 func (o *RedisOption) Addr() string {
@@ -18,14 +18,14 @@ func (o *RedisOption) Addr() string {
 }
 
 func (o *RedisOption) String() string {
-	return fmt.Sprintf("[%s:%s][%s],db[%d]", o.Host, o.Port, o.Passwd, o.DbNum)
+	return fmt.Sprintf("[%s:%s][%s],db[%d]", o.Host, o.Port, "******", o.DbNum)
 }
 
 func NewRedisClient(opt *RedisOption) (*redis.Client, error) {
 	option := &redis.Options{
-		Addr: opt.Addr(),
+		Addr:     opt.Addr(),
 		Password: opt.Passwd,
-		DB: opt.DbNum,
+		DB:       opt.DbNum,
 	}
 
 	c := redis.NewClient(option)
