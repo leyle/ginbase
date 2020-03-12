@@ -92,18 +92,18 @@ func GenerateToken(userId string) string {
 }
 
 func HttpPost(reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
-	return httpRequst(http.MethodPost, reqUrl, data, headers)
+	return httpRequest(http.MethodPost, reqUrl, data, headers)
 }
 
 func HttpPut(reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
-	return httpRequst(http.MethodPut, reqUrl, data, headers)
+	return httpRequest(http.MethodPut, reqUrl, data, headers)
 }
 
 func HttpDelete(reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
-	return httpRequst(http.MethodDelete, reqUrl, data, headers)
+	return httpRequest(http.MethodDelete, reqUrl, data, headers)
 }
 
-func httpRequst(method, reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
+func httpRequest(method, reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(method, reqUrl, bytes.NewBuffer(data))
 	if err != nil {
 		Logger.Errorf("","[%s %s] 创建失败, %s", method, reqUrl, err.Error())

@@ -90,7 +90,7 @@ func ConsumeMsg(opt *MqOption, handleF func(message *sarama.ConsumerMessage)) er
 
 	go func() {
 		for ntf := range consumer.Notifications() {
-			Logger.Errorf("", "consume msg rebalanced, %v", ntf)
+			Logger.Infof("", "consume msg rebalanced, %v", ntf)
 		}
 	}()
 
