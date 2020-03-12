@@ -20,7 +20,7 @@ var HTTP_GET_TIMEOUT time.Duration = 10 // 10 seconds
 var HTTP_POST_TIMEOUT time.Duration = 10 // 10 seconds
 
 type CurTime struct {
-	Seconds int64 `json:"seconds" bson:"seconds"` // 精确到秒的时间戳
+	Millisecond int64 `json:"millisecond" bson:"millisecond"` // 毫秒的时间戳
 	HumanTime string `json:"humanTime" bson:"humanTime"` // 给人看的时间 2019-03-04 10:31:22
 }
 
@@ -28,16 +28,19 @@ func GetCurTime() *CurTime {
 	curT := time.Now()
 
 	t := &CurTime{
-		Seconds: curT.Unix(),
+		Millisecond: curT.UnixNano() / 1e6,
 		HumanTime: curT.Format("2006-01-02 15:04:05"),
 	}
 
 	return t
 }
 
-
 func CurUnixTime() int64 {
 	return time.Now().Unix()
+}
+
+func CurMillisecond() int64 {
+	return time.Now().UnixNano() / 1e6
 }
 
 func CurHumanTime() string {
