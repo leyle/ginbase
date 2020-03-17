@@ -38,6 +38,18 @@ func TestLog(t *testing.T) {
 func handler(c *gin.Context) {
 	Logger.Info(middleware.GetReqId(c), "shiyxiiazhege")
 	time.Sleep(2 * time.Millisecond)
-	middleware.StopExec(errors.New("one error"))
+	// e := returnErr()
+	e := errors.New("some error")
+
+	middleware.StopExec(e)
 	c.JSON(200, gin.H{"hello": "world"})
+}
+
+var ErrInvalidMonth = &middleware.CustomErrStruct{
+	Code: 4002,
+	Msg:  "Invalid month format",
+}
+
+func returnErr() error {
+	return ErrInvalidMonth
 }
