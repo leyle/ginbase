@@ -21,6 +21,14 @@ func (c *CustomErrStruct) Error() string {
 	return fmt.Sprintf("%d|%s", c.Code, c.Msg)
 }
 
+func (c *CustomErrStruct) Append(msg string) *CustomErrStruct {
+	t := &CustomErrStruct{
+		Code: c.Code,
+		Msg:  c.Msg + msg,
+	}
+	return t
+}
+
 // 反向解析出来 code 和 msg
 func ParseCustomErr(err error) *CustomErrStruct {
 	msg := err.Error()

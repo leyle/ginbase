@@ -1,7 +1,6 @@
 package test
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	. "github.com/leyle/ginbase/consolelog"
 	"github.com/leyle/ginbase/middleware"
@@ -39,9 +38,8 @@ func handler(c *gin.Context) {
 	Logger.Info(middleware.GetReqId(c), "shiyxiiazhege")
 	time.Sleep(2 * time.Millisecond)
 	// e := returnErr()
-	e := errors.New("some error")
-
-	middleware.StopExec(e)
+	// e := errors.New("some error")
+	middleware.StopExec(ErrInvalidMonth.Append(" xx yy zz"))
 	c.JSON(200, gin.H{"hello": "world"})
 }
 
