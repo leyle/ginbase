@@ -7,20 +7,20 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	. "github.com/leyle/ginbase/consolelog"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
-	. "github.com/leyle/ginbase/consolelog"
 )
 
-var HTTP_GET_TIMEOUT time.Duration = 10 // 10 seconds
+var HTTP_GET_TIMEOUT time.Duration = 10  // 10 seconds
 var HTTP_POST_TIMEOUT time.Duration = 10 // 10 seconds
 
 type CurTime struct {
-	Millisecond int64 `json:"millisecond" bson:"millisecond"` // 毫秒的时间戳
+	Second    int64  `json:"second" bson:"second"`
 	HumanTime string `json:"humanTime" bson:"humanTime"` // 给人看的时间 2019-03-04 10:31:22
 }
 
@@ -28,7 +28,7 @@ func GetCurTime() *CurTime {
 	curT := time.Now()
 
 	t := &CurTime{
-		Millisecond: curT.UnixNano() / 1e6,
+		Second:    curT.Unix(),
 		HumanTime: curT.Format("2006-01-02 15:04:05"),
 	}
 
@@ -57,7 +57,7 @@ func FmtTimestampTime(sec int64) string {
 }
 
 type BaseStruct struct {
-	Id string `json:"id" bson:"_id"`
+	Id      string   `json:"id" bson:"_id"`
 	CreateT *CurTime `json:"createT" bson:"createT"`
 	UpdateT *CurTime `json:"updateT" bson:"updateT"`
 }
@@ -109,7 +109,7 @@ func HttpDelete(reqUrl string, data []byte, headers map[string]string) (*http.Re
 func httpRequest(method, reqUrl string, data []byte, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(method, reqUrl, bytes.NewBuffer(data))
 	if err != nil {
-		Logger.Errorf("","[%s %s] 创建失败, %s", method, reqUrl, err.Error())
+		Logger.Errorf("", "[%s %s] 创建失败, %s", method, reqUrl, err.Error())
 		return nil, err
 	}
 
@@ -123,7 +123,7 @@ func httpRequest(method, reqUrl string, data []byte, headers map[string]string) 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		Logger.Errorf("","对 [%s %s] 发起 client.Do() 操作失败, %s", method, reqUrl, err.Error())
+		Logger.Errorf("", "对 [%s %s] 发起 client.Do() 操作失败, %s", method, reqUrl, err.Error())
 		return nil, err
 	}
 
@@ -146,7 +146,7 @@ func HttpGet(reqUrl string, values map[string][]string, headers map[string]strin
 
 	req, err := http.NewRequest(http.MethodGet, reqUrl, nil)
 	if err != nil {
-		Logger.Errorf("","生成 http get newrequest 失败, %s", err.Error())
+		Logger.Errorf("", "生成 http get newrequest 失败, %s", err.Error())
 		return nil, err
 	}
 	req.URL.RawQuery = urlV.Encode()
@@ -161,7 +161,7 @@ func HttpGet(reqUrl string, values map[string][]string, headers map[string]strin
 
 	resp, err := client.Do(req)
 	if err != nil {
-		Logger.Errorf("","发起get请求do[%s]失败, %s", reqUrl, err.Error())
+		Logger.Errorf("", "发起get请求do[%s]失败, %s", reqUrl, err.Error())
 		return nil, err
 	}
 
@@ -202,6 +202,7 @@ func GetPageAndSize(c *gin.Context) (page, size, skip int) {
 
 // 去重 string
 type void struct{}
+
 func UniqueStringArray(items []string) []string {
 	var member void
 	datas := make(map[string]void)
@@ -224,7 +225,7 @@ func GetDayStartTimeByOffsetDay(base time.Time, offsetDay int) time.Time {
 
 // 计算星期的偏移
 func GetDayStartTimeByWeekdayOffset(base time.Time, weekday time.Weekday, offsetWeek int) time.Time {
-	offsetDay := int(weekday - base.Weekday()) + (7 * offsetWeek)
+	offsetDay := int(weekday-base.Weekday()) + (7 * offsetWeek)
 	t := GetDayStartTimeByOffsetDay(base, offsetDay)
 	return t
 }
@@ -241,7 +242,7 @@ func GetTimeByWeekdayOffsetAndHourOffset(base time.Time, weekday time.Weekday, o
 func ConvertStrYuanToIntFen(amt string) (int64, error) {
 	f, err := strconv.ParseFloat(amt, 64)
 	if err != nil {
-		Logger.Errorf("","转换元到分时，解析字符串[%s]到浮点数失败, %s", amt, err.Error())
+		Logger.Errorf("", "转换元到分时，解析字符串[%s]到浮点数失败, %s", amt, err.Error())
 		return -1, err
 	}
 
