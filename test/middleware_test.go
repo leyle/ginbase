@@ -5,7 +5,6 @@ import (
 	. "github.com/leyle/ginbase/consolelog"
 	"github.com/leyle/ginbase/middleware"
 	"testing"
-	"time"
 )
 
 func TestLog(t *testing.T) {
@@ -20,7 +19,7 @@ func TestLog(t *testing.T) {
 
 	r := middleware.SetupGin()
 
-	middleware.PrintHeader = true
+	middleware.PrintHeader = false
 
 	// IgnoreReadReqBodyPath = []string{"/api/hello"}
 
@@ -36,10 +35,11 @@ func TestLog(t *testing.T) {
 
 func handler(c *gin.Context) {
 	Logger.Info(middleware.GetReqId(c), "shiyxiiazhege")
-	time.Sleep(2 * time.Millisecond)
+	// time.Sleep(2 * time.Millisecond)
 	// e := returnErr()
 	// e := errors.New("some error")
-	middleware.StopExec(ErrInvalidMonth.Append(" xx yy zz"))
+	// middleware.StopExec(ErrInvalidMonth.Append(" xx yy zz"))
+	panic(212)
 	c.JSON(200, gin.H{"hello": "world"})
 }
 

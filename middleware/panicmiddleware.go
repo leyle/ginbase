@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/leyle/ginbase/consolelog"
@@ -71,14 +72,26 @@ func StopExec(err error) {
 }
 
 // 恢复回来
-func RecoveryMiddleware(f func(c *gin.Context, err error)) gin.HandlerFunc {
+func RecoveryMiddleware(f func(*gin.Context, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
-			if err := recover(); err != nil {
-				f(c, err.(error))
+			if rval := recover(); rval != nil {
+				err, ok := rval.(error)
+				if ok {
+					f(c, err)
+				} else {
+					err, ok := rval.(string)
+					if ok {
+						f(c, errors.New(err))
+					} else {
+						// 简单处理
+						emsg := fmt.Sprintf("%v", rval)
+						consolelog.Logger.Error(GetReqId(c), emsg)
+						f(c, errors.New(emsg))
+					}
+				}
 			}
 		}()
-
 		c.Next()
 	}
 }
