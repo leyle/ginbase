@@ -7,32 +7,36 @@ import (
 	"net/http"
 )
 
+var ApiMe = ""
+
 // 从 接口读取的数据
 type ApiRetDataForm struct {
-	Code int `json:"code"`
-	Msg string `json:"msg"`
+	Code int             `json:"code"`
+	Msg  string          `json:"msg"`
 	Data json.RawMessage `json:"data"`
 }
 
 // 通用返回结构
 type ReturnClientDataForm struct {
-	Code int `json:"code"`
-	Msg string `json:"msg"`
+	Code int         `json:"code"`
+	Msg  string      `json:"msg"`
+	Me   string      `json:"me,omitempty"`
 	Data interface{} `json:"data"`
 }
 
 // 返回查询list的带分页的数据
 type QueryListData struct {
-	Total int `json:"total"`
-	Page int `json:"page"`
-	Size int `json:"size"`
-	Data interface{} `json:"data"`
+	Total int         `json:"total"`
+	Page  int         `json:"page"`
+	Size  int         `json:"size"`
+	Data  interface{} `json:"data"`
 }
 
 func generateReturnData(code int, msg string, data interface{}) *ReturnClientDataForm {
-	info := &ReturnClientDataForm {
+	info := &ReturnClientDataForm{
 		Code: code,
-		Msg: msg,
+		Msg:  msg,
+		Me:   ApiMe,
 		Data: data,
 	}
 
@@ -72,4 +76,3 @@ func ReturnJson(c *gin.Context, statusCode, code int, msg string, data interface
 		c.JSON(statusCode, ret)
 	}
 }
-
