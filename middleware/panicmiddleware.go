@@ -30,6 +30,16 @@ func (c *CustomErrStruct) Append(msg string) *CustomErrStruct {
 	return t
 }
 
+var ErrDbExec = &CustomErrStruct{
+	Code: 5000,
+	Msg:  "Database execute failed: ",
+}
+
+var ErrNoIdData = &CustomErrStruct{
+	Code: 40000,
+	Msg:  "No data for this id: ",
+}
+
 // 反向解析出来 code 和 msg
 func ParseCustomErr(err error) *CustomErrStruct {
 	msg := err.Error()
