@@ -5,8 +5,11 @@ import (
 	"github.com/leyle/ginbase/dbandmq"
 )
 
-func RoleRouter(ds *dbandmq.Ds, g *gin.RouterGroup) {
-	roleR := g.Group("/role")
+// role 自身数据管理
+func RoleRouter(g *gin.RouterGroup, ds *dbandmq.Ds) {
+	roleR := g.Group("/role/m/", func(c *gin.Context) {
+		PreCheckAuth(c)
+	})
 	// item manage
 	itemR := roleR.Group("/item")
 	{
@@ -121,6 +124,35 @@ func RoleRouter(ds *dbandmq.Ds, g *gin.RouterGroup) {
 		// 搜索 role
 		roleR.GET("/roles", func(c *gin.Context) {
 			QueryRoleHandler(c, ds)
+		})
+	}
+}
+
+// 管理用户与 role 的关系
+// 本处不实现接口验证，但是在外部调用此接口的地方，需要实现 auth 接口
+// 实现 auth 接口时，需要使用 get/set cur user 的方法
+// 这样，接口中的数据才能读取到当前用户
+func UserAndRoleRouter(g *gin.RouterGroup, ds *dbandmq.Ds) {
+	authR := g.Group("/rau", func(c *gin.Context) {
+		PreCheckAuth(c)
+	})
+	{
+		// 给 userid 添加 role
+		authR.POST("/addrole", func(c *gin.Context) {
+			AddRoleToUserHandler(c, ds)
+		})
+
+		// 取消 userid 的 role todo
+	}
+}
+
+// 无需权限的 api
+func NoNeedAuthRouter(g *gin.RouterGroup, ds *dbandmq.Ds) {
+	nR := g.Group("")
+	{
+		// 读取用户的 role list
+		nR.GET("/rau/user/:id/roles", func(c *gin.Context) {
+			GetUserRoleHandler(c, ds)
 		})
 	}
 }

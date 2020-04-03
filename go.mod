@@ -13,7 +13,7 @@ require (
 	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/jcmturner/gofork v1.0.0 // indirect
-	github.com/json-iterator/go v1.1.7 // indirect
+	github.com/json-iterator/go v1.1.7
 	github.com/mattn/go-isatty v0.0.9 // indirect
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
