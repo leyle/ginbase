@@ -26,17 +26,26 @@ func TestRoleRouter(t *testing.T) {
 
 	r := middleware.SetupGin()
 
-	apiR := r.Group("/api", func(c *gin.Context) {
-		auth(c, ds)
-	})
+	apiR := r.Group("/api")
 
+	// 初始化
 	DefaultRoleName = "patient"
-	RoleRouter(apiR.Group(""), ds)
-	UserAndRoleRouter(apiR.Group(""), ds)
+	err := InitRoleApp(ds, DefaultRoleName, "", "", "/api")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	RoleRouter(apiR.Group("", func(c *gin.Context) {
+		auth(c, ds)
+	}), ds)
+	UserAndRoleRouter(apiR.Group("", func(c *gin.Context) {
+		auth(c, ds)
+	}), ds)
 	NoNeedAuthRouter(apiR.Group(""), ds)
 
 	addr := "127.0.0.1:8000"
-	err := r.Run(addr)
+	err = r.Run(addr)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -46,12 +55,7 @@ func auth(c *gin.Context, db *dbandmq.Ds) {
 	ds := db.CopyDs()
 	defer ds.Close()
 
-	ar := AuthUser(ds, AdminRoleName, "GET", "/some/path/")
-	// ar := &AuthResult{
-	// 	Result:       AuthResultOK,
-	// 	UserId:       "sometestuserid",
-	// 	UserName:     "sometestusername",
-	// }
+	ar := AuthUser(ds, "5e8696484af2bd18aee8f870", c.Request.Method, c.Request.RequestURI)
 	if ar.Result == AuthResultOK {
 		SetCurUser(c, ar)
 		c.Next()
@@ -60,3 +64,6 @@ func auth(c *gin.Context, db *dbandmq.Ds) {
 	}
 }
 
+func TestInsureroleitem(t *testing.T) {
+	insureRoleAppItems(nil, "/api")
+}

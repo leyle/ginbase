@@ -154,7 +154,7 @@ func QueryItemHandler(c *gin.Context, db *dbandmq.Ds) {
 	var andCondition []bson.M
 
 	// 过滤掉 admin
-	andCondition = append(andCondition, bson.M{"name": bson.M{"$not": bson.M{"$in": AdminItemNames}}})
+	andCondition = append(andCondition, bson.M{"name": bson.M{"$not": bson.M{"$in": AdminItemName}}})
 
 	name := c.Query("name")
 	if name != "" {

@@ -19,35 +19,56 @@ func init() {
 const DbPrefix = "role_"
 
 // 系统内置 api 的 group 名称
-const SysApiGroup = "system"
+const ItemGroupSystem = "system"
 
-// id 和 name 都叫这个，拥有这个就可以给任何用户赋予任何角色
+// 拥有这个就可以给任何用户赋予任何角色
 // 其他 role 就只能给用户赋予自己附属的 childrole
-const SuperChildRole = "superchildrole"
+const (
+	SuperChildRoleId   = "5e86e466fa080a3ac0956db4"
+	SuperChildRoleName = "superchildrole"
+)
 
 const (
 	RoleDataSourceInternal = "SYSTEM" // 系统内部的数据
 	RoleDataSourceApi      = "USER"   // 用户添加的数据
 )
 
-const (
-	AdminRoleName       = "admin"
-	AdminPermissionName = "admin"
-	AdminItemName       = "admin:"
+const DefaultRoleId = "5e85a88a22b9b93f458de2d8"
+var DefaultRoleName = "registereduser" // 可修改
+
+// 系统管理员的id 可修改
+var (
+	AdminUserId = "5e86dc88fa080a3ac0956db0"
+	AdminUserName = "admin"
 )
 
-var DefaultRoleName = "registereduser" // 可修改
-var DefaultRoleId = "5e85a88a22b9b93f458de2d8"
+const (
+	AdminItemId   = "5e86dfa8fa080a3ac0956db6"
+	AdminItemName = "adminItem"
 
-var AdminItemNames = []string{
-	AdminItemName + "GET",
-	AdminItemName + "POST",
-	AdminItemName + "PUT",
-	AdminItemName + "DELETE",
-	AdminItemName + "PATCH",
-	AdminItemName + "OPTION",
-	AdminItemName + "HEAD",
+	AdminPermissionId   = "5e86dfa8fa080a3ac0956db7"
+	AdminPermissionName = "adminPermission"
+
+	AdminRoleId   = "5e86dfa8fa080a3ac0956db8"
+	AdminRoleName = "adminRole"
+)
+
+var AdminChildRole = &ChildRole{
+	Id:   SuperChildRoleId,
+	Name: SuperChildRoleName,
 }
+
+// api 管理员权限
+const (
+	ApiAdminPermissionId = "5e86f751fa080a3ac0956db5"
+	ApiAdminPermissionName = "sysApiManager"
+)
+
+// api 管理员角色
+const (
+	ApiAdminRoleId = "5e86f81cfa080a3ac0956db6"
+	ApiAdminRoleName = "sysApiRole"
+)
 
 // item
 const CollectionNameItem = DbPrefix + "item"

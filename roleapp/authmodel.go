@@ -28,13 +28,11 @@ const (
 
 // user and roleid
 const CollectionNameRoleAndUser = DbPrefix + "roleanduser"
-
 var IKRoleAndUser = &dbandmq.IndexKey{
 	Collection: CollectionNameRoleAndUser,
 	SingleKey:  []string{"userName"},
 	UniqueKey:  []string{"userId"},
 }
-
 type RoleAndUser struct {
 	Id       string        `json:"id" bson:"_id"`
 	UserId   string        `json:"userId" bson:"userId"`
@@ -45,6 +43,7 @@ type RoleAndUser struct {
 	UpdateT  *util.CurTime `json:"-" bson:"updateT"`
 }
 
+// 验证结果结构
 type AuthResult struct {
 	Result       int          `json:"result"` // 验证结果
 	Msg string `json:"msg"`
@@ -74,7 +73,7 @@ func GetCurUser(c *gin.Context) *AuthResult {
 
 func IdInChildrenRole(id string, crs []*ChildRole) bool {
 	for _, cr := range crs {
-		if cr.Name == SuperChildRole {
+		if cr.Name == SuperChildRoleName {
 			return true
 		}
 		if cr.Id == id {
@@ -84,42 +83,9 @@ func IdInChildrenRole(id string, crs []*ChildRole) bool {
 	return false
 }
 
-// 验证用户是否有某权限
-// 根据 uid 读取用户角色和 api list
-// 检查是否可以调用对应的 method/api
-func AuthUser(ds *dbandmq.Ds, uid, method, uri string) *AuthResult {
-	ar := &AuthResult{
-		Result: AuthResultInit,
-		Msg: "init",
-		UserId: uid,
-	}
-	roles, err := GetUserRoles(ds, uid)
-	if err != nil {
-		ar.Result = AuthResultInternalError
-		ar.Msg = "Internal error, maybe db execute failed"
-		return ar
-	}
-	ar.Roles = roles
-
-	// 一个用户至少有一个角色，那就是默认用户
-	items := UnWrapRoles(roles)
-
-	if !hasPermission(items, method, uri) {
-		ar.Result = AuthResultNoPermission
-		ar.Msg = "user has no permission to call this api"
-		return ar
-	}
-
-	childrenRoles := UnWrapChildrenRole(roles)
-	ar.ChildrenRole = childrenRoles
-	ar.Result = AuthResultOK
-	ar.Msg = "OK"
-
-	return ar
-}
 
 // 把 roles 的所有 item 全部抽取出来
-func UnWrapRoles(roles []*Role) []*Item {
+func unWrapRoles(roles []*Role) []*Item {
 	itemMap := make(map[string]*Item)
 	for _, role := range roles {
 		for _, p := range role.Permissions {
@@ -140,7 +106,7 @@ func UnWrapRoles(roles []*Role) []*Item {
 // 展开所有的子角色
 // 子角色不做扩散继承操作，所以一个用户如果需要包含多个子角色，
 // 只能通过直接包含的方法获取，不能通过 A 包含 B，B 包含 C，A 就包含了 C 的方式获取
-func UnWrapChildrenRole(roles []*Role) []*ChildRole {
+func unWrapChildrenRole(roles []*Role) []*ChildRole {
 	var childrenRole []*ChildRole
 	for _, role := range roles {
 		if len(role.ChildrenRoles) > 0 {
@@ -229,48 +195,70 @@ func hasPermission(items []*Item, method, path string) bool {
 		}
 	}
 
+	// method 可能是 *, path 也可能是 *
+	// 如果 method 包含了 *,直接看 * 对应的 api 是否满足，如果不满足，才后续处理
+	// 否则根据情况直接返回
+	asterisk := "*"
+	auris, ok := infos[asterisk]
+	if ok {
+		// 检查 * 是否也存在与 auris 里面
+		// 如果存在，就是 method / path 都是 *
+		for _, auri := range auris {
+			if asterisk == auri {
+				return true
+			} else {
+				if uriMatch(path, auri) {
+					return true
+				}
+			}
+		}
+	}
+
+	// 检查完毕后，发现没有一个满足，还需要后续检查具体的 method 方法
 	uris, ok := infos[method]
 	if !ok {
 		// 连方法都不存在，直接就是 false
 		return false
 	}
 
-	found := false
 	for _, uri := range uris {
 		// 数据库保存的 uri 支持一个 * 通配符
 		if uri == "*" {
-			found = true
-			break
+			return true
 		}
 
-		// 包含通配符，需要正则校验
-		if strings.Contains(uri, "*") {
-			uri = strings.ReplaceAll(uri, "*", "\\w+")
-			uri := "^" + uri + "$"
-			re, err := regexp.Compile(uri)
-			if err != nil {
-				Logger.Errorf("", "检查用户权限时，系统配置错误，无法 compile 正则表达式, %s", err.Error())
-				return false
-			}
-			match := re.MatchString(path)
-			if match {
-				found = true
-				break
-			} else {
-				continue
-			}
+		if uriMatch(path, uri) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// path 是目标路径
+// uri 是基准
+// 对比 path 是否与 uri 一致
+func uriMatch(path, uri string) bool {
+	// 包含通配符，需要正则校验
+	if strings.Contains(uri, "*") {
+		uri = strings.ReplaceAll(uri, "*", "\\w+")
+		uri := "^" + uri + "$"
+		re, err := regexp.Compile(uri)
+		if err != nil {
+			Logger.Errorf("", "检查用户权限时，系统配置错误，无法 compile 正则表达式, %s", err.Error())
+			return false
+		}
+		match := re.MatchString(path)
+		if match {
+			return true
 		} else {
-			// 否则直接对比
-			if uri == path {
-				found = true
-				break
-			}
+			return false
+		}
+	} else {
+		// 否则直接对比
+		if uri == path {
+			return true
 		}
 	}
-
-	if found {
-		return true
-	}
-
 	return false
 }
