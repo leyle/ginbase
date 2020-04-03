@@ -3,6 +3,7 @@ package roleapp
 import (
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
+	. "github.com/leyle/ginbase/consolelog"
 	"github.com/leyle/ginbase/dbandmq"
 	"github.com/leyle/ginbase/middleware"
 	"github.com/leyle/ginbase/util"
@@ -10,7 +11,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"regexp"
 	"strings"
-	. "github.com/leyle/ginbase/consolelog"
 )
 
 func init() {
@@ -28,11 +28,13 @@ const (
 
 // user and roleid
 const CollectionNameRoleAndUser = DbPrefix + "roleanduser"
+
 var IKRoleAndUser = &dbandmq.IndexKey{
 	Collection: CollectionNameRoleAndUser,
 	SingleKey:  []string{"userName"},
 	UniqueKey:  []string{"userId"},
 }
+
 type RoleAndUser struct {
 	Id       string        `json:"id" bson:"_id"`
 	UserId   string        `json:"userId" bson:"userId"`
@@ -44,12 +46,16 @@ type RoleAndUser struct {
 }
 
 // 验证结果结构
+type SimpleRole struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+}
 type AuthResult struct {
 	Result       int          `json:"result"` // 验证结果
-	Msg string `json:"msg"`
+	Msg          string       `json:"msg"`
 	UserId       string       `json:"userId"`
 	UserName     string       `json:"userName"` // 可能无值
-	Roles        []*Role      `json:"roles"`
+	Roles        []*SimpleRole      `json:"roles"`
 	ChildrenRole []*ChildRole `json:"childrenRole"`
 }
 
@@ -82,7 +88,6 @@ func IdInChildrenRole(id string, crs []*ChildRole) bool {
 	}
 	return false
 }
-
 
 // 把 roles 的所有 item 全部抽取出来
 func unWrapRoles(roles []*Role) []*Item {

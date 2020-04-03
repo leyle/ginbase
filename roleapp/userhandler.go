@@ -104,7 +104,7 @@ func GetUserRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 	if rau == nil {
 		// 返回默认用户
 		dfr := GetDefaultRole()
-		retR := []*ChildRole{dfr}
+		retR := []*SimpleRole{dfr}
 		returnfun.ReturnOKJson(c, retR)
 		return
 	}
@@ -113,15 +113,14 @@ func GetUserRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 	roles, err := GetRolesByRoleIds(ds, roleIds, false)
 	middleware.StopExec(err)
 
-	var crs []*ChildRole
+	var crs []*SimpleRole
 	for _, role := range roles {
-		cr := &ChildRole{
+		cr := &SimpleRole{
 			Id:   role.Id,
 			Name: role.Name,
 		}
 		crs = append(crs, cr)
 	}
-
 
 	returnfun.ReturnOKJson(c, crs)
 	return

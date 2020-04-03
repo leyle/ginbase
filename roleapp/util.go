@@ -11,8 +11,8 @@ import (
 )
 
 // 默认用户角色
-func GetDefaultRole() *ChildRole {
-	r := &ChildRole{
+func GetDefaultRole() *SimpleRole {
+	r := &SimpleRole{
 		Id:   DefaultRoleId,
 		Name: DefaultRoleName,
 	}

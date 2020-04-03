@@ -34,11 +34,12 @@ const (
 )
 
 const DefaultRoleId = "5e85a88a22b9b93f458de2d8"
+
 var DefaultRoleName = "registereduser" // 可修改
 
 // 系统管理员的id 可修改
 var (
-	AdminUserId = "5e86dc88fa080a3ac0956db0"
+	AdminUserId   = "5e86dc88fa080a3ac0956db0"
 	AdminUserName = "admin"
 )
 
@@ -60,13 +61,13 @@ var AdminChildRole = &ChildRole{
 
 // api 管理员权限
 const (
-	ApiAdminPermissionId = "5e86f751fa080a3ac0956db5"
+	ApiAdminPermissionId   = "5e86f751fa080a3ac0956db5"
 	ApiAdminPermissionName = "sysApiManager"
 )
 
 // api 管理员角色
 const (
-	ApiAdminRoleId = "5e86f81cfa080a3ac0956db6"
+	ApiAdminRoleId   = "5e86f81cfa080a3ac0956db6"
 	ApiAdminRoleName = "sysApiRole"
 )
 

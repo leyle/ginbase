@@ -53,7 +53,6 @@ func AuthUser(ds *dbandmq.Ds, uid, method, uri string) *AuthResult {
 		ar.Msg = "Internal error, maybe db execute failed"
 		return ar
 	}
-	ar.Roles = roles
 
 	// 一个用户至少有一个角色，那就是默认用户
 	items := unWrapRoles(roles)
@@ -63,6 +62,16 @@ func AuthUser(ds *dbandmq.Ds, uid, method, uri string) *AuthResult {
 		ar.Msg = "user has no permission to call this api"
 		return ar
 	}
+
+	var simpleRoles []*SimpleRole
+	for _, role := range roles {
+		sr := &SimpleRole{
+			Id:   role.Id,
+			Name: role.Name,
+		}
+		simpleRoles = append(simpleRoles, sr)
+	}
+	ar.Roles = simpleRoles
 
 	childrenRoles := unWrapChildrenRole(roles)
 	ar.ChildrenRole = childrenRoles
