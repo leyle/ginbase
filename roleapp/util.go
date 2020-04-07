@@ -445,7 +445,7 @@ func DebugPrintRoles(roles []*Role) string {
 	return m
 }
 
-func DebugPrintSimpleRoles(roles []*Role) string {
+func DebugPrintSimpleRoles(roles []*SimpleRole) string {
 	m := ""
 	for _, role := range roles {
 		m += role.Id + "|" + role.Name + "\n"
