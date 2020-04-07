@@ -47,16 +47,16 @@ type RoleAndUser struct {
 
 // 验证结果结构
 type SimpleRole struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 type AuthResult struct {
-	Result       int          `json:"result"` // 验证结果
-	Msg          string       `json:"msg"`
-	UserId       string       `json:"userId"`
-	UserName     string       `json:"userName"` // 可能无值
-	Roles        []*SimpleRole      `json:"roles"`
-	ChildrenRole []*ChildRole `json:"childrenRole"`
+	Result       int           `json:"result"` // 验证结果
+	Msg          string        `json:"msg"`
+	UserId       string        `json:"userId"`
+	UserName     string        `json:"userName"` // 可能无值
+	Roles        []*SimpleRole `json:"roles"`
+	ChildrenRole []*ChildRole  `json:"childrenRole"`
 }
 
 func (ar *AuthResult) Dump() string {
@@ -165,6 +165,7 @@ func GetUserRoles(ds *dbandmq.Ds, uid string) ([]*Role, error) {
 	if err != nil {
 		return nil, err
 	}
+	Logger.Debugf("", "CurrentUser[%s] roles: [%s]", uid, DebugPrintRoles(roles))
 
 	return roles, nil
 }

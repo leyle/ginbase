@@ -265,6 +265,9 @@ func GetPermissionsByPermissionIds(db *dbandmq.Ds, pids []string) ([]*Permission
 		Logger.Errorf("", "根据permissionIds读取permission信息失败, %s", err.Error())
 		return nil, middleware.ErrDbExec.Append(err.Error())
 	}
+	if len(ps) == 0 {
+		return ps, nil
+	}
 
 	wg := sync.WaitGroup{}
 	finished := make(chan bool, 1)
@@ -282,6 +285,7 @@ func GetPermissionsByPermissionIds(db *dbandmq.Ds, pids []string) ([]*Permission
 	select {
 	case <-finished:
 	case err = <-errChan:
+		Logger.Errorf("", "查询permissions完整信息失败, %s", err.Error())
 		return nil, err
 	}
 
@@ -392,6 +396,7 @@ func GetRolesByRoleIds(db *dbandmq.Ds, roleIds []string, more bool) ([]*Role, er
 	select {
 	case <-finished:
 	case err = <-errChan:
+		Logger.Errorf("", "查询完整roles信息失败, %s", err.Error())
 		return nil, err
 	}
 

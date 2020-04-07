@@ -44,7 +44,7 @@ func InitRoleApp(ds *dbandmq.Ds, dfName, adminId, adminName, uriPrefix string) e
 func AuthUser(ds *dbandmq.Ds, uid, method, uri string) *AuthResult {
 	ar := &AuthResult{
 		Result: AuthResultInit,
-		Msg: "init",
+		Msg:    "init",
 		UserId: uid,
 	}
 	roles, err := GetUserRoles(ds, uid)
@@ -54,15 +54,7 @@ func AuthUser(ds *dbandmq.Ds, uid, method, uri string) *AuthResult {
 		return ar
 	}
 
-	// 一个用户至少有一个角色，那就是默认用户
-	items := unWrapRoles(roles)
-
-	if !hasPermission(items, method, uri) {
-		ar.Result = AuthResultNoPermission
-		ar.Msg = "user has no permission to call this api"
-		return ar
-	}
-
+	// 展开用户的 roles
 	var simpleRoles []*SimpleRole
 	for _, role := range roles {
 		sr := &SimpleRole{
@@ -75,6 +67,15 @@ func AuthUser(ds *dbandmq.Ds, uid, method, uri string) *AuthResult {
 
 	childrenRoles := unWrapChildrenRole(roles)
 	ar.ChildrenRole = childrenRoles
+
+	// 一个用户至少有一个角色，那就是默认用户
+	items := unWrapRoles(roles)
+	if !hasPermission(items, method, uri) {
+		ar.Result = AuthResultNoPermission
+		ar.Msg = "No permission to call this api"
+		return ar
+	}
+
 	ar.Result = AuthResultOK
 	ar.Msg = "OK"
 
