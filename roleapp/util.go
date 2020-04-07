@@ -87,20 +87,20 @@ func insureDefaultRole(ds *dbandmq.Ds) error {
 	return nil
 }
 
-func saveItem(ds *dbandmq.Ds, item *Item) error {
+func SaveItem(ds *dbandmq.Ds, item *Item) error {
 	err := ds.C(CollectionNameItem).Insert(item)
 	return err
 }
 
-func savePermission(ds *dbandmq.Ds, p *Permission) error {
+func SavePermission(ds *dbandmq.Ds, p *Permission) error {
 	return ds.C(CollectionNamePermission).Insert(p)
 }
 
-func saveRole(ds *dbandmq.Ds, role *Role) error {
+func SaveRole(ds *dbandmq.Ds, role *Role) error {
 	return ds.C(CollectionNameRole).Insert(role)
 }
 
-func saveRoleAndUser(ds *dbandmq.Ds, r *RoleAndUser) error {
+func SaveRoleAndUser(ds *dbandmq.Ds, r *RoleAndUser) error {
 	return ds.C(CollectionNameRoleAndUser).Insert(r)
 }
 
@@ -123,7 +123,7 @@ func insureAdmin(ds *dbandmq.Ds) error {
 		CreateT: curT,
 		UpdateT: curT,
 	}
-	_, err = addItem(ds, item, KeyQueryId)
+	_, err = AddItem(ds, item, KeyQueryId)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func insureAdmin(ds *dbandmq.Ds) error {
 		UpdateT: curT,
 	}
 
-	err = addPermission(ds, p, KeyQueryId)
+	err = AddPermission(ds, p, KeyQueryId)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func insureAdmin(ds *dbandmq.Ds) error {
 		UpdateT:       curT,
 	}
 
-	err = addRole(ds, role, KeyQueryId)
+	err = AddRole(ds, role, KeyQueryId)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func insureAdmin(ds *dbandmq.Ds) error {
 		UpdateT:  curT,
 	}
 
-	err = addRoleAndUser(ds, rau)
+	err = AddRoleAndUser(ds, rau)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func insureSuperChildRole(ds *dbandmq.Ds) error {
 		CreateT: util.GetCurTime(),
 	}
 	role.UpdateT = role.CreateT
-	err := addRole(ds, role, KeyQueryId)
+	err := AddRole(ds, role, KeyQueryId)
 	return err
 }
 
@@ -204,7 +204,7 @@ const (
 	KeyQueryName = "name"
 )
 
-func addItem(ds *dbandmq.Ds, item *Item, key string) (*Item, error) {
+func AddItem(ds *dbandmq.Ds, item *Item, key string) (*Item, error) {
 	// 检查数据库是否存在，存在就不管了
 	var err error
 	dbitem := &Item{}
@@ -222,11 +222,11 @@ func addItem(ds *dbandmq.Ds, item *Item, key string) (*Item, error) {
 		return dbitem, nil
 	}
 
-	err = saveItem(ds, item)
+	err = SaveItem(ds, item)
 	return item, err
 }
 
-func addPermission(ds *dbandmq.Ds, p *Permission, key string) error {
+func AddPermission(ds *dbandmq.Ds, p *Permission, key string) error {
 	var err error
 	dbp := &Permission{}
 	if key == KeyQueryId {
@@ -242,10 +242,10 @@ func addPermission(ds *dbandmq.Ds, p *Permission, key string) error {
 		return nil
 	}
 
-	return savePermission(ds, p)
+	return SavePermission(ds, p)
 }
 
-func addRole(ds *dbandmq.Ds, r *Role, key string) error {
+func AddRole(ds *dbandmq.Ds, r *Role, key string) error {
 	var err error
 	dbr := &Role{}
 	if key == KeyQueryId {
@@ -260,10 +260,10 @@ func addRole(ds *dbandmq.Ds, r *Role, key string) error {
 		return nil
 	}
 
-	return saveRole(ds, r)
+	return SaveRole(ds, r)
 }
 
-func addRoleAndUser(ds *dbandmq.Ds, rau *RoleAndUser) error {
+func AddRoleAndUser(ds *dbandmq.Ds, rau *RoleAndUser) error {
 	var err error
 	dbr, err := GetRoleAndUserByUserId(ds, rau.UserId)
 	if err != nil {
@@ -273,7 +273,7 @@ func addRoleAndUser(ds *dbandmq.Ds, rau *RoleAndUser) error {
 		return nil
 	}
 
-	return saveRoleAndUser(ds, rau)
+	return SaveRoleAndUser(ds, rau)
 }
 
 // 系统内部 item 接口
@@ -283,96 +283,96 @@ func insureRoleAppItems(ds *dbandmq.Ds, uriPrefix string) error {
 	curT := util.GetCurTime()
 
 	// 新建 item
-	item := generateItem(curT, "roleapp:createitem", "POST", uriPrefix+"/role/m/item")
+	item := GenerateItem(curT, "roleapp:createitem", "POST", uriPrefix+"/role/m/item")
 	items = append(items, item)
 
 	// 修改 item
-	item = generateItem(curT, "roleapp:updateitem", "PUT", uriPrefix+"/role/m/item/:id")
+	item = GenerateItem(curT, "roleapp:updateitem", "PUT", uriPrefix+"/role/m/item/:id")
 	items = append(items, item)
 
 	// 删除 item
-	item = generateItem(curT, "roleapp:deleteitem", "DELETE", uriPrefix+"/role/m/item/:id")
+	item = GenerateItem(curT, "roleapp:deleteitem", "DELETE", uriPrefix+"/role/m/item/:id")
 	items = append(items, item)
 
 	// 读取 item 明细
-	item = generateItem(curT, "roleapp:getitem", "GET", uriPrefix+"/role/m/item/:id")
+	item = GenerateItem(curT, "roleapp:getitem", "GET", uriPrefix+"/role/m/item/:id")
 	items = append(items, item)
 
 	// 搜索 items
-	item = generateItem(curT, "roleapp:queryitem", "GET", uriPrefix+"/role/m/items")
+	item = GenerateItem(curT, "roleapp:queryitem", "GET", uriPrefix+"/role/m/items")
 	items = append(items, item)
 
 	// 新建 permission
-	item = generateItem(curT, "roleapp:createpermission", "POST", uriPrefix+"/role/m/permission")
+	item = GenerateItem(curT, "roleapp:createpermission", "POST", uriPrefix+"/role/m/permission")
 	items = append(items, item)
 
 	// 给 permission 增加 items
-	item = generateItem(curT, "roleapp:additemstopermission", "POST", uriPrefix+"/role/m/permission/:id/additems")
+	item = GenerateItem(curT, "roleapp:additemstopermission", "POST", uriPrefix+"/role/m/permission/:id/additems")
 	items = append(items, item)
 
 	// 从 permission 移除 items
-	item = generateItem(curT, "roleapp:delitemsfrompermission", "POST", uriPrefix+"/role/m/permission/:id/delitems")
+	item = GenerateItem(curT, "roleapp:delitemsfrompermission", "POST", uriPrefix+"/role/m/permission/:id/delitems")
 	items = append(items, item)
 
 	// 修改 permission 基本信息
-	item = generateItem(curT, "roleapp:updatepermission", "PUT", uriPrefix+"/role/m/permission/:id")
+	item = GenerateItem(curT, "roleapp:updatepermission", "PUT", uriPrefix+"/role/m/permission/:id")
 	items = append(items, item)
 
 	// 删除权限
-	item = generateItem(curT, "roleapp:deletepermission", "DELETE", uriPrefix+"/role/m/permission/:id")
+	item = GenerateItem(curT, "roleapp:deletepermission", "DELETE", uriPrefix+"/role/m/permission/:id")
 	items = append(items, item)
 
 	// 读取权限明细
-	item = generateItem(curT, "roleapp:getpermission", "GET", uriPrefix+"/role/m/permission/:id")
+	item = GenerateItem(curT, "roleapp:getpermission", "GET", uriPrefix+"/role/m/permission/:id")
 	items = append(items, item)
 
 	// 搜索权限
-	item = generateItem(curT, "roleapp:querypermission", "GET", uriPrefix+"/role/m/permissions")
+	item = GenerateItem(curT, "roleapp:querypermission", "GET", uriPrefix+"/role/m/permissions")
 	items = append(items, item)
 
 	// 新建 role
-	item = generateItem(curT, "roleapp:createrole", "POST", uriPrefix+"/role/m/role")
+	item = GenerateItem(curT, "roleapp:createrole", "POST", uriPrefix+"/role/m/role")
 	items = append(items, item)
 
 	// 给 role 添加 permission
-	item = generateItem(curT, "roleapp:addpstorole", "POST", uriPrefix+"/role/m/role/:id/addps")
+	item = GenerateItem(curT, "roleapp:addpstorole", "POST", uriPrefix+"/role/m/role/:id/addps")
 	items = append(items, item)
 
 	// 从 role 中移除 permission
-	item = generateItem(curT, "roleapp:delpsfromrole", "POST", uriPrefix+"/role/m/role/:id/delps")
+	item = GenerateItem(curT, "roleapp:delpsfromrole", "POST", uriPrefix+"/role/m/role/:id/delps")
 	items = append(items, item)
 
 	// 修改 role 信息
-	item = generateItem(curT, "roleapp:updaterole", "PUT", uriPrefix+"/role/m/role/:id")
+	item = GenerateItem(curT, "roleapp:updaterole", "PUT", uriPrefix+"/role/m/role/:id")
 	items = append(items, item)
 
 	// 删除 role
-	item = generateItem(curT, "roleapp:deleterole", "DELETE", uriPrefix+"/role/m/role/:id")
+	item = GenerateItem(curT, "roleapp:deleterole", "DELETE", uriPrefix+"/role/m/role/:id")
 	items = append(items, item)
 
 	// 给 role 添加 childrole
-	item = generateItem(curT, "roleapp:addchildroletorole", "POST", uriPrefix+"/role/m/role/:id/addchildrole")
+	item = GenerateItem(curT, "roleapp:addchildroletorole", "POST", uriPrefix+"/role/m/role/:id/addchildrole")
 	items = append(items, item)
 
 	// 从 role 中移除 childrole
-	item = generateItem(curT, "roleapp:delchildrolefromrole", "POST", uriPrefix+"/role/m/role/:id/delchildrole")
+	item = GenerateItem(curT, "roleapp:delchildrolefromrole", "POST", uriPrefix+"/role/m/role/:id/delchildrole")
 	items = append(items, item)
 
 	// 查看 role 明细
-	item = generateItem(curT, "roleapp:getrole", "GET", uriPrefix+"/role/m/role/:id")
+	item = GenerateItem(curT, "roleapp:getrole", "GET", uriPrefix+"/role/m/role/:id")
 	items = append(items, item)
 
 	// 搜索 role
-	item = generateItem(curT, "roleapp:queryrole", "GET", uriPrefix+"/role/m/roles")
+	item = GenerateItem(curT, "roleapp:queryrole", "GET", uriPrefix+"/role/m/roles")
 	items = append(items, item)
 
 	// 给 userid 添加 role
-	item = generateItem(curT, "roleapp:addroletouser", "POST", uriPrefix+"/rau/addrole")
+	item = GenerateItem(curT, "roleapp:addroletouser", "POST", uriPrefix+"/rau/addrole")
 	items = append(items, item)
 
 	var itemIds []string
 	for _, item := range items {
-		dbitem, err := addItem(ds, item, KeyQueryName)
+		dbitem, err := AddItem(ds, item, KeyQueryName)
 		if err != nil {
 			return err
 		}
@@ -389,7 +389,7 @@ func insureRoleAppItems(ds *dbandmq.Ds, uriPrefix string) error {
 		CreateT: curT,
 		UpdateT: curT,
 	}
-	err = addPermission(ds, per, KeyQueryId)
+	err = AddPermission(ds, per, KeyQueryId)
 	if err != nil {
 		return err
 	}
@@ -406,7 +406,7 @@ func insureRoleAppItems(ds *dbandmq.Ds, uriPrefix string) error {
 		UpdateT:       curT,
 	}
 
-	err = addRole(ds, role, KeyQueryId)
+	err = AddRole(ds, role, KeyQueryId)
 	if err != nil {
 		return err
 	}
@@ -415,7 +415,7 @@ func insureRoleAppItems(ds *dbandmq.Ds, uriPrefix string) error {
 	return nil
 }
 
-func generateItem(t *util.CurTime, name, method, path string) *Item {
+func GenerateItem(t *util.CurTime, name, method, path string) *Item {
 	if strings.Contains(path, ":id") {
 		path = strings.ReplaceAll(path, ":id", "*")
 	}
