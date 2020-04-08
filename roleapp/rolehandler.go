@@ -13,11 +13,12 @@ import (
 // item manage handlers
 // 新建 item
 type CreateItemForm struct {
-	Name     string `json:"name" binding:"required"`
-	Method   string `json:"method" binding:"required"`
-	Path     string `json:"path" binding:"required"`
-	Group string `json:"group" binding:"required"` // 属于哪个分组
+	Name   string `json:"name" binding:"required"`
+	Method string `json:"method" binding:"required"`
+	Path   string `json:"path" binding:"required"`
+	Group  string `json:"group" binding:"required"` // 属于哪个分组
 }
+
 func CreateItemHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form CreateItemForm
 	var err error
@@ -42,14 +43,14 @@ func CreateItemHandler(c *gin.Context, db *dbandmq.Ds) {
 	}
 
 	item := &Item{
-		Id:       util.GenerateDataId(),
-		Name:     form.Name,
-		Method:   strings.ToUpper(form.Method),
-		Path:     form.Path,
-		Group: form.Group,
-		Deleted:  false,
-		Source: RoleDataSourceApi,
-		CreateT:  util.GetCurTime(),
+		Id:      util.GenerateDataId(),
+		Name:    form.Name,
+		Method:  strings.ToUpper(form.Method),
+		Path:    form.Path,
+		Group:   form.Group,
+		Deleted: false,
+		Source:  RoleDataSourceApi,
+		CreateT: util.GetCurTime(),
 	}
 	item.UpdateT = item.CreateT
 
@@ -64,11 +65,12 @@ func CreateItemHandler(c *gin.Context, db *dbandmq.Ds) {
 
 // 修改 item
 type UpdateItemForm struct {
-	Name     string `json:"name" binding:"required"`
-	Method   string `json:"method" binding:"required"`
-	Path     string `json:"path" binding:"required"`
-	Group string `json:"group" binding:"required"` // 属于哪个分组
+	Name   string `json:"name" binding:"required"`
+	Method string `json:"method" binding:"required"`
+	Path   string `json:"path" binding:"required"`
+	Group  string `json:"group" binding:"required"` // 属于哪个分组
 }
+
 func UpdateItemHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form UpdateItemForm
 	var err error
@@ -99,7 +101,7 @@ func UpdateItemHandler(c *gin.Context, db *dbandmq.Ds) {
 	dbitem.UpdateT = util.GetCurTime()
 
 	filter := bson.M{
-		"_id": id,
+		"_id":    id,
 		"source": RoleDataSourceApi,
 	}
 
@@ -119,7 +121,7 @@ func DeleteItemHandler(c *gin.Context, db *dbandmq.Ds) {
 	defer ds.Close()
 
 	filter := bson.M{
-		"_id": id,
+		"_id":    id,
 		"source": RoleDataSourceApi,
 	}
 
@@ -154,7 +156,7 @@ func QueryItemHandler(c *gin.Context, db *dbandmq.Ds) {
 	var andCondition []bson.M
 
 	// 过滤掉 admin
-	andCondition = append(andCondition, bson.M{"name": bson.M{"$not": bson.M{"$in": AdminItemName}}})
+	andCondition = append(andCondition, bson.M{"name": bson.M{"$ne": AdminItemName}})
 
 	name := c.Query("name")
 	if name != "" {
@@ -227,6 +229,7 @@ type CreatePermissionForm struct {
 	Name    string   `json:"name" binding:"required"`
 	ItemIds []string `json:"itemIds"` // 不是必选的
 }
+
 func CreatePermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form CreatePermissionForm
 	err := c.BindJSON(&form)
@@ -268,6 +271,7 @@ func CreatePermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 type AddItemsToPermissionForm struct {
 	ItemIds []string `json:"itemIds" binding:"required"`
 }
+
 func AddItemsToPermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form AddItemsToPermissionForm
 	err := c.BindJSON(&form)
@@ -302,6 +306,7 @@ func AddItemsToPermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 type RemoveItemFromPermissionForm struct {
 	ItemIds []string `json:"itemIds" binding:"required"`
 }
+
 func RemoveItemsFromPermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form RemoveItemFromPermissionForm
 	err := c.BindJSON(&form)
@@ -345,8 +350,9 @@ func RemoveItemsFromPermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 
 // 修改 permission 基本信息
 type UpdatePermissionForm struct {
-	Name   string `json:"name" binding:"required"`
+	Name string `json:"name" binding:"required"`
 }
+
 func UpdatePermissionInfoHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form UpdatePermissionForm
 	err := c.BindJSON(&form)
@@ -360,7 +366,7 @@ func UpdatePermissionInfoHandler(c *gin.Context, db *dbandmq.Ds) {
 
 	update := bson.M{
 		"$set": bson.M{
-			"name": name,
+			"name":    name,
 			"deleted": false,
 			"updateT": util.GetCurTime(),
 		},
@@ -381,7 +387,7 @@ func DeletePermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 	defer ds.Close()
 
 	filter := bson.M{
-		"_id": id,
+		"_id":    id,
 		"source": RoleDataSourceApi,
 	}
 
@@ -471,10 +477,11 @@ func QueryPermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 
 // 新建 role
 type CreateRoleForm struct {
-	Name   string   `json:"name" binding:"required"`
-	Pids   []string `json:"pids"` // 可以没有值
+	Name          string       `json:"name" binding:"required"`
+	Pids          []string     `json:"pids"`       // 可以没有值
 	ChildrenRoles []*ChildRole `json:"childRoles"` // 可以无值
 }
+
 func CreateRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form CreateRoleForm
 	err := c.BindJSON(&form)
@@ -516,6 +523,7 @@ func CreateRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 type AddPToRoleForm struct {
 	Pids []string `json:"pids" binding:"required"`
 }
+
 func AddPermissionsToRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form AddPToRoleForm
 	err := c.BindJSON(&form)
@@ -548,6 +556,7 @@ func AddPermissionsToRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 type RemovePFromRoleForm struct {
 	Pids []string `json:"pids" binding:"required"`
 }
+
 func RemovePermissionsFromRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form RemovePFromRoleForm
 	err := c.BindJSON(&form)
@@ -592,8 +601,9 @@ func RemovePermissionsFromRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 
 // 修改 role 信息
 type UpdateRoleForm struct {
-	Name   string `json:"name" binding:"required"`
+	Name string `json:"name" binding:"required"`
 }
+
 func UpdateRoleInfoHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form UpdateRoleForm
 	err := c.BindJSON(&form)
@@ -607,7 +617,7 @@ func UpdateRoleInfoHandler(c *gin.Context, db *dbandmq.Ds) {
 
 	update := bson.M{
 		"$set": bson.M{
-			"name": name,
+			"name":    name,
 			"deleted": false,
 			"updateT": util.GetCurTime(),
 		},
@@ -630,7 +640,7 @@ func DeleteRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 	}
 
 	filter := bson.M{
-		"_id": id,
+		"_id":    id,
 		"source": RoleDataSourceApi,
 	}
 
@@ -654,6 +664,7 @@ func DeleteRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 type ChildRoleForm struct {
 	Roles []*ChildRole `json:"childrenRole" binding:"required"`
 }
+
 func AddChildRolesToRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 	var form ChildRoleForm
 	err := c.BindJSON(&form)
@@ -726,7 +737,7 @@ func AddChildRolesToRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 	update := bson.M{
 		"$set": bson.M{
 			"childrenRole": allRoles,
-			"updateT": util.GetCurTime(),
+			"updateT":      util.GetCurTime(),
 		},
 	}
 
@@ -785,7 +796,6 @@ func DelChildRolesFromRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 			remainRoles = append(remainRoles, dbr)
 		}
 	}
-
 
 	update := bson.M{
 		"$set": bson.M{
