@@ -270,7 +270,7 @@ func uriMatch(path, uri string) bool {
 	return false
 }
 
-func AddOrUpdateRole(ds *dbandmq.Ds, uid, rid, rname string) error {
+func AddOrUpdateRoleAndRole(ds *dbandmq.Ds, uid, rid, rname string) error {
 	roleId := rid
 	if rid == "" {
 		if rname == "" {
