@@ -1,6 +1,7 @@
 package roleapp
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
 	. "github.com/leyle/ginbase/consolelog"
@@ -267,4 +268,55 @@ func uriMatch(path, uri string) bool {
 		}
 	}
 	return false
+}
+
+func AddOrUpdateRole(ds *dbandmq.Ds, uid, rid, rname string) error {
+	roleId := rid
+	if rid == "" {
+		if rname == "" {
+			return errors.New("rid 与 rname 必须至少一个有值")
+		}
+		dbrole, err := GetRoleByName(ds, rname, false)
+		if err != nil {
+			return err
+		}
+		if dbrole == nil {
+			return errors.New("没有指定rname的role")
+		}
+		roleId = dbrole.Id
+	}
+
+	if roleId == "" {
+		return errors.New("缺少roleId数据")
+	}
+
+	rau, err := GetRoleAndUserByUserId(ds, uid)
+	if err != nil {
+		return err
+	}
+
+	if rau == nil {
+		rau = &RoleAndUser{
+			Id:      util.GenerateDataId(),
+			UserId:  uid,
+			RoleIds: []string{roleId},
+			CreateT: util.GetCurTime(),
+		}
+		rau.UpdateT = rau.CreateT
+		err = ds.C(CollectionNameRoleAndUser).Insert(rau)
+		return err
+	}
+
+	rau.RoleIds = append(rau.RoleIds, roleId)
+	rau.RoleIds = util.UniqueStringArray(rau.RoleIds)
+	update := bson.M{
+		"$set": bson.M{
+			"roleIds": rau.RoleIds,
+			"updateT": util.GetCurTime(),
+		},
+	}
+
+	err = ds.C(CollectionNameRoleAndUser).UpdateId(rau.Id, update)
+
+	return err
 }
