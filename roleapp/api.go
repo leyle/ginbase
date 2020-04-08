@@ -65,7 +65,7 @@ func AuthUser(ds *dbandmq.Ds, uid, method, uri string) *AuthResult {
 	}
 	ar.Roles = simpleRoles
 
-	childrenRoles := unWrapChildrenRole(roles)
+	childrenRoles := UnWrapChildrenRole(roles)
 	ar.ChildrenRole = childrenRoles
 
 	// 一个用户至少有一个角色，那就是默认用户

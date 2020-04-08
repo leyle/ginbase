@@ -112,12 +112,14 @@ func unWrapRoles(roles []*Role) []*Item {
 // 展开所有的子角色
 // 子角色不做扩散继承操作，所以一个用户如果需要包含多个子角色，
 // 只能通过直接包含的方法获取，不能通过 A 包含 B，B 包含 C，A 就包含了 C 的方式获取
-func unWrapChildrenRole(roles []*Role) []*ChildRole {
+func UnWrapChildrenRole(roles []*Role) []*ChildRole {
 	var childrenRole []*ChildRole
 	for _, role := range roles {
 		if len(role.ChildrenRoles) > 0 {
 			childrenRole = append(childrenRole, role.ChildrenRoles...)
-			// 同时追加自身进入
+		}
+		// 同时追加自身进入
+		if role.Id != DefaultRoleId {
 			childrenRole = append(childrenRole, &ChildRole{
 				Id:   role.Id,
 				Name: role.Name,
@@ -161,7 +163,6 @@ func GetUserRoles(ds *dbandmq.Ds, uid string) ([]*Role, error) {
 		rau.RoleIds = append(rau.RoleIds, DefaultRoleId)
 	}
 
-	// 读取补充完整的 role 信息 todo
 	roles, err := GetRolesByRoleIds(ds, rau.RoleIds, true)
 	if err != nil {
 		return nil, err
