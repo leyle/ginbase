@@ -437,10 +437,10 @@ func GenerateItem(t *util.CurTime, name, method, path string) *Item {
 func DebugPrintRoles(roles []*Role) string {
 	m := ""
 	for _, role := range roles {
-		m += role.Id + "|" + role.Name + "\n"
+		m += role.Id + "|" + role.Name + "\t"
 	}
 	if len(m) > 0 {
-		m = strings.TrimSuffix(m, "\n")
+		m = strings.TrimSuffix(m, "\t")
 	}
 	return m
 }
@@ -448,10 +448,24 @@ func DebugPrintRoles(roles []*Role) string {
 func DebugPrintSimpleRoles(roles []*SimpleRole) string {
 	m := ""
 	for _, role := range roles {
-		m += role.Id + "|" + role.Name + "\n"
+		m += role.Id + "|" + role.Name + "\t"
 	}
 	if len(m) > 0 {
-		m = strings.TrimSuffix(m, "\n")
+		m = strings.TrimSuffix(m, "\t")
 	}
 	return m
+}
+
+// 如果有多个角色，就过滤掉默认角色，否则不变
+func FilterDefaultRole(roles []*SimpleRole) *SimpleRole {
+	if len(roles) == 1 {
+		return roles[0]
+	}
+
+	for _, role := range roles {
+		if role.Name != DefaultRoleName {
+			return role
+		}
+	}
+	return roles[0]
 }
