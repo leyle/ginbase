@@ -40,10 +40,11 @@ type RoleAndUser struct {
 	Id       string        `json:"id" bson:"_id"`
 	UserId   string        `json:"userId" bson:"userId"`
 	UserName string        `json:"userName" bson:"userName"` // 非必填，主要是给人看的
-	RoleIds  []string      `json:"roleIds" bson:"roleIds"`
-	Roles    []*Role       `json:"-" bson:"-"`
-	CreateT  *util.CurTime `json:"-" bson:"createT"`
-	UpdateT  *util.CurTime `json:"-" bson:"updateT"`
+	RoleIds  []string      `json:"-" bson:"roleIds"`
+	Roles    []*SimpleRole `json:"roles,omitempty" bson:"-"`
+	// Roles    []*Role       `json:"-" bson:"-"`
+	CreateT *util.CurTime `json:"-" bson:"createT"`
+	UpdateT *util.CurTime `json:"-" bson:"updateT"`
 }
 
 // 验证结果结构

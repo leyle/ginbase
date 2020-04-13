@@ -616,3 +616,98 @@ sub role 也是实际存在于系统中的 role，如果自己生造了一个不
 }
 ```
 
+---
+
+
+
+#### 查看指定 user id 的 roles
+
+```json
+// GET /rau/user/:id
+// :id 指的是用户 id
+
+// 下面是一个返回例子
+{
+    "code": 200,
+    "msg": "OK",
+    "data": [
+        {
+            "id": "5e8696484af2bd18aee8f870",
+            "name": "vspadmin"
+        },
+        {
+            "id": "5e943655c9d95709ae02a9b1",
+            "name": "vmadmin"
+        }
+    ]
+}
+```
+
+---
+
+
+
+#### 搜索 user id 与 role 的关联列表
+
+这里搜索返回的列表是 userid 与 role 的关联列表，从 userid 的角度来组织数据，一个 user id 一条数据。
+
+```json
+// GET /rau/users
+// 支持的参数有
+// uid - 指的是 user id,支持部分匹配
+// uname - 指的是 user name，如果调用给用户添加 role 接口时，传了 userName，那么就可以使用，部分匹配
+// rid - 指的是 role id,精确匹配。
+// page - 从 1 开始
+// size - 默认值 10
+
+// 返回例子
+{
+    "code": 200,
+    "msg": "OK",
+    "data": {
+        "total": 3,
+        "page": 1,
+        "size": 10,
+        "data": [
+            {
+                "id": "5e944a21c9d9570b4bd9dec3",
+                "userId": "someuseridvalue",
+                "userName": "Jack Ma",
+                "roles": [
+                    {
+                        "id": "5e8696484af2bd18aee8f870",
+                        "name": "vspadmin"
+                    },
+                    {
+                        "id": "5e943655c9d95709ae02a9b1",
+                        "name": "vmadmin"
+                    }
+                ]
+            },
+            {
+                "id": "5e86e7724af2bd0ad0383461",
+                "userId": "5e86dc88fa080a3ac0956db0",
+                "userName": "admin",
+                "roles": [
+                    {
+                        "id": "5e86dfa8fa080a3ac0956db8",
+                        "name": "adminRole"
+                    }
+                ]
+            },
+            {
+                "id": "5e8696484af2bd18aee8f870",
+                "userId": "5e8696484af2bd18aee8f870",
+                "userName": "vspadmin",
+                "roles": [
+                    {
+                        "id": "5e8696484af2bd18aee8f870",
+                        "name": "vspadmin"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+

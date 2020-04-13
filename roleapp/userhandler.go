@@ -200,6 +200,86 @@ func RemoveRoleFromUserHandler(c *gin.Context, db *dbandmq.Ds) {
 	return
 }
 
+// 读取 userid 与 role 列表
+func QueryRoleAndUserHandler(c *gin.Context, db *dbandmq.Ds) {
+	var andCondition []bson.M
+	uid := c.Query("uid")
+	if uid != "" {
+		andCondition = append(andCondition, bson.M{"userId": bson.M{"$regex": uid}})
+	}
+
+	uname := c.Query("uname")
+	if uname != "" {
+		andCondition = append(andCondition, bson.M{"userName": bson.M{"$regex": uname}})
+	}
+
+	rid := c.Query("rid")
+	if rid != "" {
+		andCondition = append(andCondition, bson.M{"roleIds": rid})
+	}
+
+	query := bson.M{}
+	if len(andCondition) > 0 {
+		query = bson.M{
+			"$and": andCondition,
+		}
+	}
+
+	ds := db.CopyDs()
+	defer ds.Close()
+
+	Q := ds.C(CollectionNameRoleAndUser).Find(query)
+	total, err := Q.Count()
+	middleware.StopExec(err)
+
+	var raus []*RoleAndUser
+	page, size, skip := util.GetPageAndSize(c)
+	err = Q.Sort("-_id").Skip(skip).Limit(size).All(&raus)
+	middleware.StopExec(err)
+
+	// 组装 role ids 为 simplerole
+	var roleIds []string
+	for _, rau := range raus {
+		roleIds = append(roleIds, rau.RoleIds...)
+	}
+	roleIds = util.UniqueStringArray(roleIds)
+
+	dbRoles, err := GetRolesByRoleIds(ds, roleIds, false)
+	middleware.StopExec(err)
+	findR := func(rid string) *SimpleRole {
+		for _, dbr := range dbRoles {
+			if dbr.Id == rid {
+				return &SimpleRole{
+					Id:   dbr.Id,
+					Name: dbr.Name,
+				}
+			}
+		}
+		return nil
+	}
+
+	for _, rau := range raus {
+		var srs []*SimpleRole
+		for _, rid := range rau.RoleIds {
+			sr := findR(rid)
+			if sr != nil {
+				srs = append(srs, sr)
+			}
+		}
+		rau.Roles = srs
+	}
+
+	ret := returnfun.QueryListData{
+		Total: total,
+		Page:  page,
+		Size:  size,
+		Data:  raus,
+	}
+
+	returnfun.ReturnOKJson(c, ret)
+	return
+}
+
 // 读取用户的 role
 // 本接口无需权限
 func GetUserRoleHandler(c *gin.Context, db *dbandmq.Ds) {
@@ -231,7 +311,8 @@ func GetUserRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 		}
 		crs = append(crs, cr)
 	}
+	rau.Roles = crs
 
-	returnfun.ReturnOKJson(c, crs)
+	returnfun.ReturnOKJson(c, rau)
 	return
 }

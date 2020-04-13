@@ -367,7 +367,15 @@ func insureRoleAppItems(ds *dbandmq.Ds, uriPrefix string) error {
 	items = append(items, item)
 
 	// 给 userid 添加 role
-	item = GenerateItem(curT, "roleapp:addroletouser", "POST", uriPrefix+"/rau/addrole")
+	item = GenerateItem(curT, "roleapp:addroletouser", "POST", uriPrefix+"/rau/addroles")
+	items = append(items, item)
+
+	// 取消 userid 的 role
+	item = GenerateItem(curT, "roleapp:delrolefromuser", "POST", uriPrefix+"/rau/delroles")
+	items = append(items, item)
+
+	// 读取 userid 与 roles 列表
+	item = GenerateItem(curT, "roleapp:queryuserandroles", "GET", uriPrefix+"/rau/users")
 	items = append(items, item)
 
 	var itemIds []string

@@ -142,9 +142,14 @@ func UserAndRoleRouter(g *gin.RouterGroup, ds *dbandmq.Ds) {
 			AddRoleToUserHandler(c, ds)
 		})
 
-		// 取消 userid 的 role todo
+		// 取消 userid 的 role
 		authR.POST("/delroles", func(c *gin.Context) {
 			RemoveRoleFromUserHandler(c, ds)
+		})
+
+		// 查询 user and role list
+		authR.GET("/users", func(c *gin.Context) {
+			QueryRoleAndUserHandler(c, ds)
 		})
 	}
 }
