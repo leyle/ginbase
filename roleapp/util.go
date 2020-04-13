@@ -149,7 +149,7 @@ func insureAdmin(ds *dbandmq.Ds) error {
 		Id:            AdminRoleId,
 		Name:          AdminRoleName,
 		PermissionIds: []string{AdminPermissionId},
-		ChildrenRoles: []*ChildRole{AdminChildRole},
+		SubRoles:      []*SubRole{AdminSubRole},
 		Deleted:       false,
 		Source:        RoleDataSourceInternal,
 		CreateT:       curT,
@@ -161,8 +161,8 @@ func insureAdmin(ds *dbandmq.Ds) error {
 		return err
 	}
 
-	// superchild role
-	err = insureSuperChildRole(ds)
+	// super sub role
+	err = insureSuperSubRole(ds)
 	if err != nil {
 		return err
 	}
@@ -184,11 +184,11 @@ func insureAdmin(ds *dbandmq.Ds) error {
 	return nil
 }
 
-// 把 superchild role 存储到 role 里面
-func insureSuperChildRole(ds *dbandmq.Ds) error {
+// 把 super sub role 存储到 role 里面
+func insureSuperSubRole(ds *dbandmq.Ds) error {
 	role := &Role{
-		Id:      SuperChildRoleId,
-		Name:    SuperChildRoleName,
+		Id:      SuperSubRoleId,
+		Name:    SuperSubRoleName,
 		Deleted: false,
 		Source:  RoleDataSourceInternal,
 		CreateT: util.GetCurTime(),
@@ -350,12 +350,12 @@ func insureRoleAppItems(ds *dbandmq.Ds, uriPrefix string) error {
 	item = GenerateItem(curT, "roleapp:deleterole", "DELETE", uriPrefix+"/role/m/role/:id")
 	items = append(items, item)
 
-	// 给 role 添加 childrole
-	item = GenerateItem(curT, "roleapp:addchildroletorole", "POST", uriPrefix+"/role/m/role/:id/addchildrole")
+	// 给 role 添加 subrole
+	item = GenerateItem(curT, "roleapp:addsubroletorole", "POST", uriPrefix+"/role/m/role/:id/addsubroles")
 	items = append(items, item)
 
-	// 从 role 中移除 childrole
-	item = GenerateItem(curT, "roleapp:delchildrolefromrole", "POST", uriPrefix+"/role/m/role/:id/delchildrole")
+	// 从 role 中移除 subrole
+	item = GenerateItem(curT, "roleapp:delsubrolefromrole", "POST", uriPrefix+"/role/m/role/:id/delsubroles")
 	items = append(items, item)
 
 	// 查看 role 明细
@@ -399,7 +399,7 @@ func insureRoleAppItems(ds *dbandmq.Ds, uriPrefix string) error {
 		Id:            ApiAdminRoleId,
 		Name:          ApiAdminRoleName,
 		PermissionIds: []string{ApiAdminPermissionId},
-		ChildrenRoles: []*ChildRole{AdminChildRole},
+		SubRoles:      []*SubRole{AdminSubRole},
 		Deleted:       false,
 		Source:        RoleDataSourceInternal,
 		CreateT:       curT,

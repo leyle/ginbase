@@ -106,14 +106,14 @@ func RoleRouter(g *gin.RouterGroup, ds *dbandmq.Ds) {
 			DeleteRoleHandler(c, ds)
 		})
 
-		// 给 role 添加 childrole
-		rR.POST("/:id/addchildrole", func(c *gin.Context) {
-			AddChildRolesToRoleHandler(c, ds)
+		// 给 role 添加 subrole
+		rR.POST("/:id/addsubroles", func(c *gin.Context) {
+			AddSubRolesToRoleHandler(c, ds)
 		})
 
-		// 删除 role 的 childrole
-		rR.POST("/:id/delchildrole", func(c *gin.Context) {
-			DelChildRolesFromRoleHandler(c, ds)
+		// 删除 role 的 subrole
+		rR.POST("/:id/delsubroles", func(c *gin.Context) {
+			DelSubRolesFromRoleHandler(c, ds)
 		})
 
 		// 查看 role 明细
@@ -137,12 +137,15 @@ func UserAndRoleRouter(g *gin.RouterGroup, ds *dbandmq.Ds) {
 		PreCheckAuth(c)
 	})
 	{
-		// 给 userid 添加 role
-		authR.POST("/addrole", func(c *gin.Context) {
+		// 给 userid 添加 roles
+		authR.POST("/addroles", func(c *gin.Context) {
 			AddRoleToUserHandler(c, ds)
 		})
 
 		// 取消 userid 的 role todo
+		authR.POST("/delroles", func(c *gin.Context) {
+			RemoveRoleFromUserHandler(c, ds)
+		})
 	}
 }
 
@@ -151,7 +154,7 @@ func NoNeedAuthRouter(g *gin.RouterGroup, ds *dbandmq.Ds) {
 	nR := g.Group("")
 	{
 		// 读取用户的 role list
-		nR.GET("/rau/user/:id/roles", func(c *gin.Context) {
+		nR.GET("/rau/user/:id", func(c *gin.Context) {
 			GetUserRoleHandler(c, ds)
 		})
 	}

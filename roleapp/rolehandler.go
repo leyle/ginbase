@@ -477,9 +477,9 @@ func QueryPermissionHandler(c *gin.Context, db *dbandmq.Ds) {
 
 // 新建 role
 type CreateRoleForm struct {
-	Name          string       `json:"name" binding:"required"`
-	Pids          []string     `json:"pids"`       // 可以没有值
-	ChildrenRoles []*ChildRole `json:"childRoles"` // 可以无值
+	Name     string     `json:"name" binding:"required"`
+	Pids     []string   `json:"pids"`     // 可以没有值
+	SubRoles []*SubRole `json:"subRoles"` // 可以无值
 }
 
 func CreateRoleHandler(c *gin.Context, db *dbandmq.Ds) {
@@ -503,7 +503,7 @@ func CreateRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 		Id:            util.GenerateDataId(),
 		Name:          name,
 		PermissionIds: form.Pids,
-		ChildrenRoles: form.ChildrenRoles,
+		SubRoles:      form.SubRoles,
 		Deleted:       false,
 		Source:        RoleDataSourceApi,
 		CreateT:       util.GetCurTime(),
@@ -660,13 +660,13 @@ func DeleteRoleHandler(c *gin.Context, db *dbandmq.Ds) {
 	return
 }
 
-// 给 role 添加 childrole
-type ChildRoleForm struct {
-	Roles []*ChildRole `json:"childrenRole" binding:"required"`
+// 给 role 添加 subrole
+type SubRoleForm struct {
+	Roles []*SubRole `json:"subRoles" binding:"required"`
 }
 
-func AddChildRolesToRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
-	var form ChildRoleForm
+func AddSubRolesToRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
+	var form SubRoleForm
 	err := c.BindJSON(&form)
 	middleware.StopExec(err)
 
@@ -702,8 +702,8 @@ func AddChildRolesToRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 		}
 		return nil
 	}
-	var validRoles []*ChildRole
-	var invalidRoles []*ChildRole
+	var validRoles []*SubRole
+	var invalidRoles []*SubRole
 	for _, addr := range form.Roles {
 		vr := findR(addr.Id)
 		if vr != nil {
@@ -719,25 +719,25 @@ func AddChildRolesToRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 	}
 
 	// 当前角色已有的 role 和新的 role 要去重
-	var allRoles []*ChildRole
+	var allRoles []*SubRole
 	allRoles = append(allRoles, validRoles...)
-	if len(dbRole.ChildrenRoles) > 0 {
-		allRoles = append(allRoles, dbRole.ChildrenRoles...)
+	if len(dbRole.SubRoles) > 0 {
+		allRoles = append(allRoles, dbRole.SubRoles...)
 	}
 
-	roleMap := make(map[string]*ChildRole)
+	roleMap := make(map[string]*SubRole)
 	for _, r := range allRoles {
 		roleMap[r.Id] = r
 	}
-	allRoles = []*ChildRole{}
+	allRoles = []*SubRole{}
 	for _, v := range roleMap {
 		allRoles = append(allRoles, v)
 	}
 
 	update := bson.M{
 		"$set": bson.M{
-			"childrenRole": allRoles,
-			"updateT":      util.GetCurTime(),
+			"subRoles": allRoles,
+			"updateT":  util.GetCurTime(),
 		},
 	}
 
@@ -753,9 +753,9 @@ func AddChildRolesToRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 	return
 }
 
-// 删除 role 的 childroles
-func DelChildRolesFromRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
-	var form ChildRoleForm
+// 删除 role 的 subroles
+func DelSubRolesFromRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
+	var form SubRoleForm
 	err := c.BindJSON(&form)
 	middleware.StopExec(err)
 
@@ -775,12 +775,12 @@ func DelChildRolesFromRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 	}
 
 	// 删除的时候，就直接循环删除即可
-	if len(dbRole.ChildrenRoles) == 0 {
+	if len(dbRole.SubRoles) == 0 {
 		returnfun.ReturnOKJson(c, "")
 		return
 	}
 
-	findR := func(rid string) *ChildRole {
+	findR := func(rid string) *SubRole {
 		for _, r := range form.Roles {
 			if rid == r.Id {
 				return r
@@ -789,8 +789,8 @@ func DelChildRolesFromRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 		return nil
 	}
 
-	var remainRoles []*ChildRole
-	for _, dbr := range dbRole.ChildrenRoles {
+	var remainRoles []*SubRole
+	for _, dbr := range dbRole.SubRoles {
 		cr := findR(dbr.Id)
 		if cr == nil {
 			remainRoles = append(remainRoles, dbr)
@@ -799,8 +799,8 @@ func DelChildRolesFromRoleHandler(c *gin.Context, ds *dbandmq.Ds) {
 
 	update := bson.M{
 		"$set": bson.M{
-			"childrenRole": remainRoles,
-			"updateT":      util.GetCurTime(),
+			"subRoles": remainRoles,
+			"updateT":  util.GetCurTime(),
 		},
 	}
 

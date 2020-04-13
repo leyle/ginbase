@@ -26,11 +26,11 @@ func TestRoleRouter(t *testing.T) {
 
 	r := middleware.SetupGin()
 
-	apiR := r.Group("/api")
+	apiR := r.Group("")
 
 	// 初始化
 	DefaultRoleName = "patient"
-	err := InitRoleApp(ds, DefaultRoleName, "", "", "/api")
+	err := InitRoleApp(ds, DefaultRoleName, "", "", "")
 	if err != nil {
 		t.Error(err)
 		return
@@ -55,7 +55,7 @@ func auth(c *gin.Context, db *dbandmq.Ds) {
 	ds := db.CopyDs()
 	defer ds.Close()
 
-	ar := AuthUser(ds, "e1cc4bc1-0222-4a4e-a2d2-2e8cd6cfa604", c.Request.Method, c.Request.RequestURI)
+	ar := AuthUser(ds, AdminUserId, c.Request.Method, c.Request.RequestURI)
 	if ar.Result == AuthResultOK {
 		SetCurUser(c, ar)
 		c.Next()

@@ -22,10 +22,10 @@ const DbPrefix = "role_"
 const ItemGroupSystem = "system"
 
 // 拥有这个就可以给任何用户赋予任何角色
-// 其他 role 就只能给用户赋予自己附属的 childrole
+// 其他 role 就只能给用户赋予自己附属的 subrole
 const (
-	SuperChildRoleId   = "5e86e466fa080a3ac0956db4"
-	SuperChildRoleName = "superchildrole"
+	SuperSubRoleId   = "5e86e466fa080a3ac0956db4"
+	SuperSubRoleName = "superSubRole"
 )
 
 const (
@@ -35,7 +35,7 @@ const (
 
 const DefaultRoleId = "5e85a88a22b9b93f458de2d8"
 
-var DefaultRoleName = "registereduser" // 可修改
+var DefaultRoleName = "registerUser" // 可修改
 
 // 系统管理员的id 可修改
 var (
@@ -54,9 +54,9 @@ const (
 	AdminRoleName = "adminRole"
 )
 
-var AdminChildRole = &ChildRole{
-	Id:   SuperChildRoleId,
-	Name: SuperChildRoleName,
+var AdminSubRole = &SubRole{
+	Id:   SuperSubRoleId,
+	Name: SuperSubRoleName,
 }
 
 // api 管理员权限
@@ -136,7 +136,7 @@ type Role struct {
 	Permissions   []*Permission `json:"permissions" bson:"-"`
 
 	// 包含的下属 role 列表，当前 role 所属用户可以给自己的下属用户赋予的权限
-	ChildrenRoles []*ChildRole `json:"childrenRole" bson:"childrenRole"`
+	SubRoles []*SubRole `json:"subRoles" bson:"subRoles"`
 
 	Deleted bool `json:"deleted" bson:"deleted"`
 
@@ -146,7 +146,7 @@ type Role struct {
 }
 
 // 记录值，归属于某个上层 role
-type ChildRole struct {
+type SubRole struct {
 	Id   string `json:"id" bson:"id"`     // role Id
 	Name string `json:"name" bson:"name"` // role name，展示查看用
 }

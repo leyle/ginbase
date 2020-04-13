@@ -52,12 +52,12 @@ type SimpleRole struct {
 	Name string `json:"name"`
 }
 type AuthResult struct {
-	Result       int           `json:"result"` // 验证结果
-	Msg          string        `json:"msg"`
-	UserId       string        `json:"userId"`
-	UserName     string        `json:"userName"` // 可能无值
-	Roles        []*SimpleRole `json:"roles"`
-	ChildrenRole []*ChildRole  `json:"childrenRole"`
+	Result   int           `json:"result"` // 验证结果
+	Msg      string        `json:"msg"`
+	UserId   string        `json:"userId"`
+	UserName string        `json:"userName"` // 可能无值
+	Roles    []*SimpleRole `json:"roles"`
+	SubRoles []*SubRole    `json:"subRoles"`
 }
 
 func (ar *AuthResult) Dump() string {
@@ -78,12 +78,40 @@ func GetCurUser(c *gin.Context) *AuthResult {
 	return result
 }
 
-func IdInChildrenRole(id string, crs []*ChildRole) bool {
-	for _, cr := range crs {
-		if cr.Name == SuperChildRoleName {
-			return true
+// 这是一个全量检测，要求  subroleids 都在 user 的 subroles 里面
+func IdInSubRoles(user *AuthResult, subRoleIds []string) bool {
+	// 管理员 ok
+	if user.UserId == AdminUserId {
+		return true
+	}
+
+	// 拥有超级 sub role ok
+	if hasSubRoles(SuperSubRoleId, user.SubRoles) {
+		return true
+	}
+
+	// 对比是否有对应的 sub role
+	findS := func(s string) bool {
+		for _, sr := range user.SubRoles {
+			if sr.Id == s {
+				return true
+			}
 		}
-		if cr.Id == id {
+		return false
+	}
+
+	for _, sr := range subRoleIds {
+		if !findS(sr) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func hasSubRoles(src string, dsts []*SubRole) bool {
+	for _, dst := range dsts {
+		if src == dst.Id {
 			return true
 		}
 	}
@@ -112,34 +140,34 @@ func unWrapRoles(roles []*Role) []*Item {
 // 展开所有的子角色
 // 子角色不做扩散继承操作，所以一个用户如果需要包含多个子角色，
 // 只能通过直接包含的方法获取，不能通过 A 包含 B，B 包含 C，A 就包含了 C 的方式获取
-func UnWrapChildrenRole(roles []*Role) []*ChildRole {
-	var childrenRole []*ChildRole
+func UnWrapSubRoles(roles []*Role) []*SubRole {
+	var subRoles []*SubRole
 	for _, role := range roles {
-		if len(role.ChildrenRoles) > 0 {
-			childrenRole = append(childrenRole, role.ChildrenRoles...)
+		if len(role.SubRoles) > 0 {
+			subRoles = append(subRoles, role.SubRoles...)
 		}
 		// 同时追加自身进入
 		if role.Id != DefaultRoleId {
-			childrenRole = append(childrenRole, &ChildRole{
+			subRoles = append(subRoles, &SubRole{
 				Id:   role.Id,
 				Name: role.Name,
 			})
 		}
 	}
-	if len(childrenRole) > 0 {
-		childrenRole = uniqueChildrenRole(childrenRole)
+	if len(subRoles) > 0 {
+		subRoles = uniqueSubRoles(subRoles)
 	}
 
-	return childrenRole
+	return subRoles
 }
 
-func uniqueChildrenRole(childrenRole []*ChildRole) []*ChildRole {
-	roleMap := make(map[string]*ChildRole)
-	for _, cr := range childrenRole {
+func uniqueSubRoles(subRoles []*SubRole) []*SubRole {
+	roleMap := make(map[string]*SubRole)
+	for _, cr := range subRoles {
 		roleMap[cr.Id] = cr
 	}
 
-	var ret []*ChildRole
+	var ret []*SubRole
 	for _, v := range roleMap {
 		ret = append(ret, v)
 	}

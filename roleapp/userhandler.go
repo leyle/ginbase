@@ -13,11 +13,12 @@ import (
 // 给用户添加 role
 // role id 与 role name 必须有一个存在
 type AddRoleToUserForm struct {
-	UserId string `json:"userId" binding:"required"`
-	UserName string `json:"userName"` // 可选值
-	RoleId string `json:"roleId"`
-	RoleName string `json:"roleName"`
+	UserId    string   `json:"userId" binding:"required"`
+	UserName  string   `json:"userName"` // 可选值
+	RoleIds   []string `json:"roleIds"`
+	RoleNames []string `json:"roleNames"`
 }
+
 func AddRoleToUserHandler(c *gin.Context, db *dbandmq.Ds) {
 	var form AddRoleToUserForm
 	err := c.BindJSON(&form)
@@ -25,21 +26,36 @@ func AddRoleToUserHandler(c *gin.Context, db *dbandmq.Ds) {
 
 	ds := db.CopyDs()
 	defer ds.Close()
+	if len(form.RoleIds) == 0 && len(form.RoleNames) == 0 {
+		returnfun.ReturnErrJson(c, "roleId 与 roleName 必须要有一个存在")
+		return
+	}
 
-	roleId := strings.TrimSpace(form.RoleId)
-	if form.RoleId == "" {
-		if form.RoleName == "" {
-			returnfun.ReturnErrJson(c, "roleId 与 roleName 必须要有一个存在")
-			return
-		} else {
-			dbrole, err := GetRoleByName(ds, strings.TrimSpace(form.RoleName), false)
-			middleware.StopExec(err)
-			if dbrole == nil {
-				returnfun.ReturnErrJson(c, "没有指定 roleName 的数据")
-				return
+	var roleIds []string
+	if len(form.RoleIds) > 0 {
+		for _, rid := range form.RoleIds {
+			rid = strings.TrimSpace(rid)
+			if rid != "" {
+				roleIds = append(roleIds, rid)
 			}
-			roleId = dbrole.Id
 		}
+	} else if len(form.RoleNames) > 0 {
+		// 此处值一般不会多，所以多读几次数据库即可
+		for _, rn := range form.RoleNames {
+			rn = strings.TrimSpace(rn)
+			if rn != "" {
+				dbrole, err := GetRoleByName(ds, rn, false)
+				middleware.StopExec(err)
+				if dbrole != nil {
+					roleIds = append(roleIds, dbrole.Id)
+				}
+			}
+		}
+	}
+
+	if len(roleIds) == 0 {
+		returnfun.ReturnErrJson(c, "传递的 role 相关数据全部不合法")
+		return
 	}
 
 	// 检查当前操作用户是否能够给别人分配对应的 role
@@ -49,8 +65,8 @@ func AddRoleToUserHandler(c *gin.Context, db *dbandmq.Ds) {
 		return
 	}
 
-	if !IdInChildrenRole(roleId, curUser.ChildrenRole) {
-		returnfun.Return403Json(c, "当前用户无权给用户赋予指定角色")
+	if !IdInSubRoles(curUser, roleIds) {
+		returnfun.Return403Json(c, "当前用户无权给用户赋予某些角色")
 		return
 	}
 
@@ -63,7 +79,7 @@ func AddRoleToUserHandler(c *gin.Context, db *dbandmq.Ds) {
 			Id:       util.GenerateDataId(),
 			UserId:   form.UserId,
 			UserName: form.UserName,
-			RoleIds:  []string{roleId},
+			RoleIds:  roleIds,
 			CreateT:  util.GetCurTime(),
 		}
 		rau.UpdateT = rau.CreateT
@@ -73,7 +89,7 @@ func AddRoleToUserHandler(c *gin.Context, db *dbandmq.Ds) {
 		return
 	}
 
-	rau.RoleIds = append(rau.RoleIds, roleId)
+	rau.RoleIds = append(rau.RoleIds, roleIds...)
 	rau.RoleIds = util.UniqueStringArray(rau.RoleIds)
 
 	update := bson.M{
@@ -87,6 +103,100 @@ func AddRoleToUserHandler(c *gin.Context, db *dbandmq.Ds) {
 	middleware.StopExec(err)
 
 	returnfun.ReturnOKJson(c, rau)
+	return
+}
+
+// 移除用户的某些 role
+type RemoveUserRoleForm struct {
+	UserId    string   `json:"userId" binding:"required"`
+	RoleIds   []string `json:"roleIds"`
+	RoleNames []string `json:"roleNames"`
+}
+
+func RemoveRoleFromUserHandler(c *gin.Context, db *dbandmq.Ds) {
+	var form RemoveUserRoleForm
+	err := c.BindJSON(&form)
+	middleware.StopExec(err)
+
+	ds := db.CopyDs()
+	defer ds.Close()
+	if len(form.RoleIds) == 0 && len(form.RoleNames) == 0 {
+		returnfun.ReturnErrJson(c, "roleId 与 roleName 必须要有一个存在")
+		return
+	}
+
+	var roleIds []string
+	if len(form.RoleIds) > 0 {
+		for _, rid := range form.RoleIds {
+			rid = strings.TrimSpace(rid)
+			if rid != "" {
+				roleIds = append(roleIds, rid)
+			}
+		}
+	} else if len(form.RoleNames) > 0 {
+		// 此处值一般不会多，所以多读几次数据库即可
+		for _, rn := range form.RoleNames {
+			rn = strings.TrimSpace(rn)
+			if rn != "" {
+				dbrole, err := GetRoleByName(ds, rn, false)
+				middleware.StopExec(err)
+				if dbrole != nil {
+					roleIds = append(roleIds, dbrole.Id)
+				}
+			}
+		}
+	}
+
+	if len(roleIds) == 0 {
+		returnfun.ReturnErrJson(c, "传递的 role 相关数据全部不合法")
+		return
+	}
+
+	// 检查当前操作用户是否能够给别人分配对应的 role
+	curUser := GetCurUser(c)
+	if curUser == nil {
+		returnfun.ReturnJson(c, 417, 417, "服务器配置错误，未正确配置用户验证", "")
+		return
+	}
+
+	if !IdInSubRoles(curUser, roleIds) {
+		returnfun.Return403Json(c, "当前用户无权给用户赋予某些角色")
+		return
+	}
+
+	rau, err := GetRoleAndUserByUserId(ds, strings.TrimSpace(form.UserId))
+	middleware.StopExec(err)
+	if rau == nil {
+		returnfun.ReturnErrJson(c, "用户无赋予权限记录")
+		return
+	}
+
+	// 处理剩下的
+	var remainIds []string
+	for _, dbr := range rau.RoleIds {
+		remain := true
+		for _, rid := range roleIds {
+			if dbr == rid {
+				remain = false
+				break
+			}
+		}
+		if remain {
+			remainIds = append(remainIds, dbr)
+		}
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"roleIds": remainIds,
+			"updateT": util.GetCurTime(),
+		},
+	}
+
+	err = ds.C(CollectionNameRoleAndUser).UpdateId(rau.Id, update)
+	middleware.StopExec(err)
+
+	returnfun.ReturnOKJson(c, "")
 	return
 }
 
