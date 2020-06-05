@@ -12,10 +12,11 @@ import (
 // 新建分类
 type NewInfiniteClassForm struct {
 	ParentId string `json:"pid" binding:"required"`
-	Name string `json:"name" binding:"required"`
-	Icon string `json:"icon"`
-	Info string `json:"info"`
+	Name     string `json:"name" binding:"required"`
+	Icon     string `json:"icon"`
+	Info     string `json:"info"`
 }
+
 func NewInfiniteClassHandler(c *gin.Context) {
 	var form NewInfiniteClassForm
 	if err := c.BindJSON(&form); err != nil {
@@ -40,10 +41,11 @@ func NewInfiniteClassHandler(c *gin.Context) {
 
 // 修改分类名字、图标、描述信息
 type UpdateInfiniteClassForm struct {
-	Name string `json:"name"`
+	Name string `json:"name" binding:"required"`
 	Icon string `json:"icon"`
 	Info string `json:"info"`
 }
+
 func UpdateInfiniteClassHandler(c *gin.Context) {
 	var form UpdateInfiniteClassForm
 	if err := c.BindJSON(&form); err != nil {
@@ -251,8 +253,8 @@ func getInfiniteClassByName(c *gin.Context, name string) {
 
 	f := bson.M{
 		"domain": domain,
-		"level": iLevel,
-		"name": bson.M{"$regex": name},
+		"level":  iLevel,
+		"name":   bson.M{"$regex": name},
 	}
 	if disable == "Y" {
 		f["disable"] = true
@@ -282,6 +284,7 @@ func getInfiniteClassByName(c *gin.Context, name string) {
 }
 
 // 读取指定level的分类列表
+// 如果有 pname/pid，那么就是刷选的指定 pid 下属的指定 level 的数据
 func QueryLevelInfiniteClassHandler(c *gin.Context) {
 	level := c.Param("level")
 	ilevel, err := strconv.Atoi(level)
@@ -314,13 +317,35 @@ func QueryLevelInfiniteClassHandler(c *gin.Context) {
 		}
 	}
 
-	ics, err := QueryInfiniteClassByLevel(db, domain, ilevel, disable, more)
+	// 检查是否有 pid/pname 参数
+	var pid = ""
+	qpid := c.Query("pid")
+	if qpid != "" {
+		pid = qpid
+	} else {
+		pname := c.Query("pname")
+		if pname != "" {
+			// 根据 pname 和 当前 level 读取 pid
+			pic, err := GetInfiniteClassByNameAndLevel(db, pname, ilevel-1)
+			if err != nil {
+				returnfun.ReturnErrJson(c, err.Error())
+				return
+			}
+			if pic == nil {
+				returnfun.ReturnErrJson(c, "无数据匹配指定的pname")
+				return
+			}
+			pid = pic.ParentId
+		}
+	}
+
+	ics, err := QueryInfiniteClassByLevel(db, domain, pid, ilevel, disable, more)
 	if err != nil {
 		returnfun.ReturnErrJson(c, err.Error())
 		return
 	}
 
-	returnfun.ReturnOKJson(c,  ics)
+	returnfun.ReturnOKJson(c, ics)
 	return
 }
 
@@ -362,4 +387,3 @@ func QueryInfiniteClassUseParentIdHandler(c *gin.Context) {
 	returnfun.ReturnOKJson(c, ics)
 	return
 }
-

@@ -2,19 +2,19 @@ package infiniteclass
 
 import (
 	"fmt"
+	. "github.com/leyle/ginbase/consolelog"
 	"github.com/leyle/ginbase/dbandmq"
 	"github.com/leyle/ginbase/util"
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	. "github.com/leyle/ginbase/consolelog"
 )
 
 const INFINITE_CLASS_ROOT_ID = "0"
 
 type ClassOption struct {
 	TbName string
-	Ds *dbandmq.Ds
+	Ds     *dbandmq.Ds
 	// MgoOption *dbandmq.MgoOption
 }
 
@@ -22,15 +22,15 @@ var Opt *ClassOption
 
 // 无限极分类
 type InfiniteClass struct {
-	Id string `json:"id" bson:"_id"`
-	ParentId string `json:"pid" bson:"parentId"`
-	Name string `json:"name" bson:"name"`
-	Icon string `json:"icon" bson:"icon"` // 图标
-	Info string `json:"info" bson:"info"` // 描述信息
-	Level int `json:"level" bson:"level"`
-	Disable bool `json:"disable" bson:"disable"` // 是否禁用
-	Domain string `json:"domain" bson:"domain"` // 归属于哪个域，使用这个数据
-	Children []*InfiniteClass `json:"children" bson:"-"` // 下一级
+	Id       string           `json:"id" bson:"_id"`
+	ParentId string           `json:"pid" bson:"parentId"`
+	Name     string           `json:"name" bson:"name"`
+	Icon     string           `json:"icon" bson:"icon"` // 图标
+	Info     string           `json:"info" bson:"info"` // 描述信息
+	Level    int              `json:"level" bson:"level"`
+	Disable  bool             `json:"disable" bson:"disable"` // 是否禁用
+	Domain   string           `json:"domain" bson:"domain"`   // 归属于哪个域，使用这个数据
+	Children []*InfiniteClass `json:"children" bson:"-"`      // 下一级
 }
 
 func (i *InfiniteClass) Desc() string {
@@ -117,8 +117,8 @@ func NewInfiniteClass(db *dbandmq.Ds, pid, name, icon, info, domain string) (*In
 func GetInfiniteClassByParentIdAndName(db *dbandmq.Ds, pid, name, domain string) (*InfiniteClass, error) {
 	f := bson.M{
 		"parentId": pid,
-		"name": name,
-		"domain": domain,
+		"name":     name,
+		"domain":   domain,
 	}
 
 	var c *InfiniteClass
@@ -149,7 +149,7 @@ func QueryAllChildrenByParentClass(db *dbandmq.Ds, pic *InfiniteClass, disable s
 	var ics []*InfiniteClass
 	f := bson.M{
 		"parentId": pic.Id,
-		"domain": pic.Domain,
+		"domain":   pic.Domain,
 	}
 	if disable == "Y" {
 		f["disable"] = true
@@ -177,12 +177,15 @@ func QueryAllChildrenByParentClass(db *dbandmq.Ds, pic *InfiniteClass, disable s
 }
 
 // 读取指定 level 的分类
-func QueryInfiniteClassByLevel(db *dbandmq.Ds, domain string, level int, disable string, more bool) ([]*InfiniteClass, error) {
+func QueryInfiniteClassByLevel(db *dbandmq.Ds, domain, pid string, level int, disable string, more bool) ([]*InfiniteClass, error) {
 	var ics []*InfiniteClass
 	var err error
 	f := bson.M{
 		"domain": domain,
-		"level": level,
+		"level":  level,
+	}
+	if pid != "" {
+		f["parentId"] = pid
 	}
 
 	if disable == "Y" {
@@ -210,4 +213,19 @@ func QueryInfiniteClassByLevel(db *dbandmq.Ds, domain string, level int, disable
 	}
 
 	return ics, nil
+}
+
+// 根据 name 和 level 读取数据
+func GetInfiniteClassByNameAndLevel(ds *dbandmq.Ds, name string, level int) (*InfiniteClass, error) {
+	f := bson.M{
+		"name":  name,
+		"level": level,
+	}
+
+	var ic *InfiniteClass
+	err := ds.C(Opt.TbName).Find(f).One(&ic)
+	if err != nil && err != mgo.ErrNotFound {
+		return nil, err
+	}
+	return ic, nil
 }
