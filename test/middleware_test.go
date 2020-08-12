@@ -41,6 +41,8 @@ func handler(c *gin.Context) {
 	// middleware.StopExec(ErrInvalidMonth.Append(" xx yy zz"))
 	// panic(212)
 	// c.JSON(200, gin.H{"hello": "world"})
+	middleware.StopExec(ErrInvalidMonth)
+
 	m := returnNil()
 	println(m.A)
 }

@@ -87,7 +87,12 @@ func RecoveryMiddleware(f func(*gin.Context, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if rval := recover(); rval != nil {
-				debug.PrintStack()
+				// runtime error, such as nil pointer dereference, should print stack
+				prval := fmt.Sprintf("%v", rval)
+				if strings.Contains(prval, "runtime") {
+					consolelog.Logger.Error(GetReqId(c), prval)
+					debug.PrintStack()
+				}
 				err, ok := rval.(error)
 				if ok {
 					f(c, err)
