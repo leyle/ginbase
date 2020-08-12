@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/leyle/ginbase/consolelog"
 	"github.com/leyle/ginbase/returnfun"
+	"runtime/debug"
 	"strconv"
 	"strings"
 )
@@ -86,6 +87,7 @@ func RecoveryMiddleware(f func(*gin.Context, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if rval := recover(); rval != nil {
+				debug.PrintStack()
 				err, ok := rval.(error)
 				if ok {
 					f(c, err)

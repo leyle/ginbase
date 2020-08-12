@@ -39,8 +39,10 @@ func handler(c *gin.Context) {
 	// e := returnErr()
 	// e := errors.New("some error")
 	// middleware.StopExec(ErrInvalidMonth.Append(" xx yy zz"))
-	panic(212)
-	c.JSON(200, gin.H{"hello": "world"})
+	// panic(212)
+	// c.JSON(200, gin.H{"hello": "world"})
+	m := returnNil()
+	println(m.A)
 }
 
 var ErrInvalidMonth = &middleware.CustomErrStruct{
@@ -50,4 +52,12 @@ var ErrInvalidMonth = &middleware.CustomErrStruct{
 
 func returnErr() error {
 	return ErrInvalidMonth
+}
+
+type Return struct {
+	A string
+}
+
+func returnNil() *Return {
+	return nil
 }
